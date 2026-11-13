@@ -30,11 +30,11 @@ Route::get('/news/{id}', [PageController::class, 'newsShow'])->name('news.show')
 
 Route::controller(AuthController::class)->group(function () {
 
-    Route::get('homepage', 'Homepage');
+    // (legacy /homepage and /dashboard-Doctor are redirects at the bottom of this file)
     Route::get('login', 'login')->name('login');
     Route::post('/login', 'loginUser')->name('login.submit')->middleware('throttle:5,1');
     Route::post('/logout', 'logout')->name('logout');
-    Route::get('dashboard-Doctor', 'Dashboard_Dcotor');
+
 
     // แสดงฟอร์มขอรีเซ็ทรหัสผ่าน
     Route::get('password/request', 'showPasswordRequestForm')->name('password.request');
@@ -218,3 +218,6 @@ Route::middleware(['auth'])->group(function () {
 
 // Doctor-only roles no longer need a dedicated routing block as 
 // their functionality spans via RBAC into CareInstructionController and Dashboard.
+
+Route::redirect('/homepage', '/');
+Route::redirect('/dashboard-Doctor', '/dashboard');
