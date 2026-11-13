@@ -79,8 +79,14 @@
 
                     <div class="form-group mb-3">
                         <label for="line_token">Line Token (เลือกใส่ได้)</label>
-                        <input type="text" id="line_token" name="line_token" class="form-control"
-                            value="{{ old('line_token', $user->line_token) }}">
+                        <input type="password" id="line_token" name="line_token" class="form-control" autocomplete="off"
+                            placeholder="{{ $user->line_token ? 'ตั้งค่าไว้แล้ว — เว้นว่างเพื่อใช้ค่าเดิม' : 'ยังไม่ได้ตั้งค่า' }}">
+                        @if ($user->line_token)
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" value="1" id="clear_line_token" name="clear_line_token">
+                                <label class="form-check-label" for="clear_line_token">ลบ Line Token เดิม</label>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="d-flex gap-2 justify-content-end mt-4">

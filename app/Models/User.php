@@ -34,6 +34,7 @@ class User extends Model implements AuthenticatableContract
     protected $hidden = [
         'Password',
         'remember_token',
+        'line_token', // secret: never serialize to JSON or views
     ];
 
     protected $casts = [

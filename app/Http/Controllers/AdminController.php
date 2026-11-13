@@ -117,7 +117,12 @@ class AdminController extends Controller
         $user->Name_User = $request->filled('Name_User') ? $request->Name_User : $user->Name_User;
         $user->Phone = $request->filled('Phone') ? $request->Phone : $user->Phone;
         $user->Address = $request->filled('Address') ? $request->Address : $user->Address;
-        $user->line_token = $request->line_token;
+        // The token is never sent back to the browser: blank keeps the stored value, the checkbox clears it.
+        if ($request->boolean('clear_line_token')) {
+            $user->line_token = null;
+        } elseif ($request->filled('line_token')) {
+            $user->line_token = $request->line_token;
+        }
 
         if ($request->filled('Password')) {
             $user->Password = Hash::make($request->Password);
