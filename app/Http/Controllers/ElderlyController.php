@@ -101,12 +101,13 @@ class ElderlyController extends Controller
     {
         $elderlies = Elderly::with(['barthel_adl', 'care_giver'])->paginate(20);
 
-        $ageGroupsData = Elderly::selectRaw('
-            SUM(TIMESTAMPDIFF(YEAR, Birthday, CURDATE()) BETWEEN 60 AND 69) as age_60_69,
-            SUM(TIMESTAMPDIFF(YEAR, Birthday, CURDATE()) BETWEEN 70 AND 79) as age_70_79,
-            SUM(TIMESTAMPDIFF(YEAR, Birthday, CURDATE()) BETWEEN 80 AND 89) as age_80_89,
-            SUM(TIMESTAMPDIFF(YEAR, Birthday, CURDATE()) >= 90) as age_90_plus
-        ')->first();
+        $age = \App\Support\Sql::age();
+        $ageGroupsData = Elderly::selectRaw("
+            SUM(CASE WHEN {$age} BETWEEN 60 AND 69 THEN 1 ELSE 0 END) as age_60_69,
+            SUM(CASE WHEN {$age} BETWEEN 70 AND 79 THEN 1 ELSE 0 END) as age_70_79,
+            SUM(CASE WHEN {$age} BETWEEN 80 AND 89 THEN 1 ELSE 0 END) as age_80_89,
+            SUM(CASE WHEN {$age} >= 90 THEN 1 ELSE 0 END) as age_90_plus
+        ")->first();
 
         $ageGroups = [
             'ช่วงอายุ 60-69' => (int) ($ageGroupsData->age_60_69 ?? 0),
