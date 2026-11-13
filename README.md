@@ -8,7 +8,11 @@
 
 ## 🎮 Live Demo
 
-🔗 **Demo URL:** _[เติมลิงก์หลัง deploy — ดูวิธี deploy ฟรีด้วย Railway ใน 5 นาทีที่ [DEPLOYMENT.md](DEPLOYMENT.md#option-d-railway-เร็วที่สุด-ฟรี)]_
+🔗 **Demo URL:** https://adl-assessment.onrender.com
+
+> รันบน **Render** (Docker, free tier) + ฐานข้อมูล **PostgreSQL บน Supabase** — เปิดครั้งแรกอาจรอประมาณ 1 นาทีให้เซิร์ฟเวอร์ตื่น
+>
+> ระบบรองรับทั้ง MySQL และ PostgreSQL (ตั้ง `DB_CONNECTION=mysql` หรือ `pgsql`)
 
 ทดลองเข้าใช้งานได้ทันทีด้วยบัญชีตัวอย่าง (ข้อมูลทั้งหมดเป็นข้อมูลสมมติ ไม่ใช่ข้อมูลจริง):
 
