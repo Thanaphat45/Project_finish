@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Elderly;
+use App\Support\Sql;
 use App\Models\User;
 use App\Models\BarthelAdl;
 use App\Models\CareGiver;
@@ -80,10 +81,10 @@ class DashboardController extends Controller
         ];
 
         $ageGroups = [
-            'ช่วงอายุ 60-69' => (clone $query)->whereRaw(AppSupportSql::age() . ' BETWEEN 60 AND 69')->count(),
-            'ช่วงอายุ 70-79' => (clone $query)->whereRaw(AppSupportSql::age() . ' BETWEEN 70 AND 79')->count(),
-            'ช่วงอายุ 80-89' => (clone $query)->whereRaw(AppSupportSql::age() . ' BETWEEN 80 AND 89')->count(),
-            'ช่วงอายุ 90+' => (clone $query)->whereRaw(AppSupportSql::age() . ' >= 90')->count(),
+            'ช่วงอายุ 60-69' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 60 AND 69')->count(),
+            'ช่วงอายุ 70-79' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 70 AND 79')->count(),
+            'ช่วงอายุ 80-89' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 80 AND 89')->count(),
+            'ช่วงอายุ 90+' => (clone $query)->whereRaw(Sql::age() . ' >= 90')->count(),
         ];
 
         $elderlyLocations = $this->getElderlyLocations($elderlies);
@@ -129,10 +130,10 @@ class DashboardController extends Controller
                 'ติดเตียง' => (clone $query)->whereHas('barthel_adl', fn($q) => $q->where('Group_ADL', 'กลุ่มติดเตียง'))->count(),
             ],
             'age_distribution' => [
-                '60-69' => (clone $query)->whereRaw(AppSupportSql::age() . ' BETWEEN 60 AND 69')->count(),
-                '70-79' => (clone $query)->whereRaw(AppSupportSql::age() . ' BETWEEN 70 AND 79')->count(),
-                '80-89' => (clone $query)->whereRaw(AppSupportSql::age() . ' BETWEEN 80 AND 89')->count(),
-                '90+' => (clone $query)->whereRaw(AppSupportSql::age() . ' >= 90')->count(),
+                '60-69' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 60 AND 69')->count(),
+                '70-79' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 70 AND 79')->count(),
+                '80-89' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 80 AND 89')->count(),
+                '90+' => (clone $query)->whereRaw(Sql::age() . ' >= 90')->count(),
             ]
         ];
 
@@ -143,16 +144,16 @@ class DashboardController extends Controller
     {
         switch ($range) {
             case '60-69':
-                $query->whereRaw(AppSupportSql::age() . ' BETWEEN 60 AND 69');
+                $query->whereRaw(Sql::age() . ' BETWEEN 60 AND 69');
                 break;
             case '70-79':
-                $query->whereRaw(AppSupportSql::age() . ' BETWEEN 70 AND 79');
+                $query->whereRaw(Sql::age() . ' BETWEEN 70 AND 79');
                 break;
             case '80-89':
-                $query->whereRaw(AppSupportSql::age() . ' BETWEEN 80 AND 89');
+                $query->whereRaw(Sql::age() . ' BETWEEN 80 AND 89');
                 break;
             case '90+':
-                $query->whereRaw(AppSupportSql::age() . ' >= 90');
+                $query->whereRaw(Sql::age() . ' >= 90');
                 break;
         }
     }
