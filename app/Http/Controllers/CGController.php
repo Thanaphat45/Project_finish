@@ -326,7 +326,7 @@ class CGController extends Controller
         $careGiverId = $this->getLatestCareGiverId($request->ID_Elderly, $request->activity_date);
 
         if (!$careGiverId) {
-            return redirect()->back()->withErrors(['ID_CG' => 'ไม่พบข้อมูล Care Giver สำหรับผู้สูงอายุที่เลือก']);
+            return redirect()->back()->withInput()->withErrors(['ID_CG' => 'ไม่พบข้อมูล Care Giver สำหรับผู้สูงอายุที่เลือก']);
         }
 
         // ป้องกันการประเมินซ้ำในวันเดียวกัน
@@ -335,7 +335,7 @@ class CGController extends Controller
             ->exists();
 
         if ($alreadyExists) {
-            return redirect()->back()->with('error', 'กิจกรรม ACG สำหรับวันนี้ได้รับบันทึกแล้ว ไม่สามารถบันทึกซ้ำได้');
+            return redirect()->back()->withInput()->with('error', 'กิจกรรม ACG สำหรับวันนี้ได้รับบันทึกแล้ว ไม่สามารถบันทึกซ้ำได้');
         }
 
         $activityData = [
@@ -366,7 +366,7 @@ class CGController extends Controller
         $activity->fill($activityData);
         $activity->save();
 
-        return redirect()->route('activities.create')->with('success', 'เพิ่มกิจกรรมเรียบร้อยแล้ว!');
+        return redirect()->route('acg.index')->with('success', 'บันทึกการเยี่ยมบ้านเรียบร้อยแล้ว');
     }
 
     private function getLatestCareGiverId($idElderly, $currentDate)

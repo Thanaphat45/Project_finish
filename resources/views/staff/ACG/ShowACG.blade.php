@@ -27,7 +27,7 @@
                     <tr>
                         <th>ผู้สูงอายุ</th>
                         <th>ผู้ดูแล</th>
-                        <th>ผลการประเมิน</th>
+                        <th>ประเภทการเยี่ยม</th>
                         <th>วันที่เยี่ยม</th>
                         <th><span class="sr-only">จัดการ</span></th>
                     </tr>
@@ -38,11 +38,11 @@
                         <tr>
                             <td><b>{{ $cg->Name_Elderly ?? '–' }}</b></td>
                             <td>{{ $cg->Name_CG ?? '–' }}</td>
-                            <td>{!! $evaluated ? '<span class="pill ok">ประเมินแล้ว</span>' : '<span class="pill todo">ยังไม่ได้ประเมิน</span>' !!}</td>
+                            <td>{!! $evaluated ? '<span class="pill info">' . e($activity->Evaluate) . '</span>' : '<span class="pill none">ไม่ระบุ</span>' !!}</td>
                             <td>{{ $activity->Date_ACG ? \Carbon\Carbon::parse($activity->Date_ACG)->locale('th')->translatedFormat('j M') . ' ' . (\Carbon\Carbon::parse($activity->Date_ACG)->year + 543) : '–' }}</td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="{{ route('acg.edit', ['id' => $activity->ID_ACG]) }}" @class(['btn', 'btn-sm', 'btn-light' => $evaluated, 'btn-primary' => !$evaluated])>{{ $evaluated ? 'แก้ไข' : 'ประเมินผล' }}</a>
+                                    <a href="{{ route('acg.edit', ['id' => $activity->ID_ACG]) }}" class="btn btn-light btn-sm">แก้ไข</a>
                                     <details class="app-pop">
                                         <summary class="btn btn-light btn-sm" aria-label="ตัวเลือกเพิ่มเติม"><span class="material-icons">more_horiz</span></summary>
                                         <div class="app-pop-panel">
