@@ -19,7 +19,6 @@
     $groupPill = fn ($g) => match ($g) {
         'กลุ่มติดเตียง' => 'bad', 'กลุ่มติดบ้าน' => 'todo', 'กลุ่มติดสังคม' => 'ok', default => 'none',
     };
-    $ranges = ['all' => 'ทั้งหมด', 'today' => 'วันนี้', '7' => '7 วันล่าสุด', '30' => '30 วันล่าสุด'];
 @endphp
 
 @section('content')
@@ -42,35 +41,7 @@
     </div>
 
     <section class="panel">
-        <form method="GET" action="{{ route('adl.index') }}" class="toolbar" id="list-filter">
-            <label class="grow">ค้นหาชื่อผู้สูงอายุ
-                <span class="search-box">
-                    <span class="material-icons">search</span>
-                    <input type="search" name="search" class="form-control" placeholder="พิมพ์ชื่อ" value="{{ request('search') }}" autocomplete="off">
-                </span>
-            </label>
-            <div class="seg" role="group" aria-label="ช่วงเวลา">
-                @foreach ($ranges as $key => $label)
-                    <button type="submit" name="range" value="{{ $key }}" @class(['on' => $range === $key]) @if($range === $key) aria-pressed="true" @endif>{{ $label }}</button>
-                @endforeach
-            </div>
-            <details class="more-filters" @if($range === 'custom') open @endif>
-                <summary @class(['btn', 'btn-light', 'on' => $range === 'custom'])>กำหนดวันเอง</summary>
-                <div class="more-filters-body">
-                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" aria-label="ตั้งแต่วันที่">
-                    <span>ถึง</span>
-                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}" aria-label="ถึงวันที่">
-                    <button type="submit" class="btn btn-primary">ใช้</button>
-                </div>
-            </details>
-        </form>
-
-        <div class="result-count">
-            พบ {{ $adls->total() }} รายการ
-            @if (request()->hasAny(['search', 'date_from', 'date_to']) || $range !== 'all')
-                · <a href="{{ route('adl.index') }}">ดูทั้งหมด</a>
-            @endif
-        </div>
+        <x-list-toolbar :action="route('adl.index')" :range="$range" :total="$adls->total()" />
 
         <div class="table-responsive">
             <table class="table list-table">
@@ -179,23 +150,6 @@
 
 @push('styles')
     <style>
-        .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; background: var(--surface); }
-        .seg button { border: 0; background: none; min-height: 44px; padding: 0 14px; font: 600 15px 'Sarabun', sans-serif; color: var(--ink-2); }
-        .seg button + button { border-left: 1px solid var(--line); }
-        .seg button.on { background: var(--brand-soft); color: var(--brand-ink); }
-        .more-filters { position: relative; }
-        .more-filters summary { list-style: none; }
-        .more-filters summary::-webkit-details-marker { display: none; }
-        .more-filters summary.on { border-color: var(--brand) !important; color: var(--brand-ink) !important; }
-        .more-filters-body {
-            position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; display: flex; gap: 8px; align-items: center;
-            background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; box-shadow: 0 12px 32px -12px rgba(0,0,0,.25);
-        }
-        .list-table .who { text-decoration: none !important; color: var(--ink) !important; }
-        .score { display: inline-flex; align-items: center; gap: 10px; }
-        .score b { font-size: 20px; }
-        .score small { color: var(--muted); margin-left: -8px; }
-        .row-actions .app-pop > summary { padding: 4px 8px !important; }
         .adl-sheet .modal-header { align-items: flex-start; }
         .adl-sheet .modal-title { font-size: 22px; margin: 0; }
         .sheet-total { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; font-size: 17px; }
@@ -212,25 +166,6 @@
 
 @push('scripts')
     <script>
-        (function () {
-            const form = document.getElementById('list-filter');
-            const q = form.querySelector('input[name=search]');
-            const dates = form.querySelectorAll('input[type=date]');
-            // Searching by text keeps the range that is on screen.
-            const keep = document.createElement('input');
-            keep.type = 'hidden'; keep.name = 'range'; keep.value = @js($range === 'custom' ? 'all' : $range);
-            let t;
-            q.addEventListener('input', () => {
-                clearTimeout(t);
-                t = setTimeout(() => { form.appendChild(keep); form.submit(); }, 600);
-            });
-            if (q.value) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
-            form.addEventListener('submit', e => {
-                // A quick-range button replaces any custom dates.
-                if (e.submitter && e.submitter.name === 'range') dates.forEach(d => d.disabled = true);
-            });
-        })();
-
         function confirmDelete(id, name) {
             Swal.fire({
                 title: 'ลบผลประเมิน ADL ของ ' + name + '?', text: 'ลบแล้วกู้คืนไม่ได้', icon: 'warning',

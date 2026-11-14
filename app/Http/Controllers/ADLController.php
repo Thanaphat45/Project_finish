@@ -20,31 +20,13 @@ class ADLController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
-        $dateFrom = $request->get('date_from');
-        $dateTo = $request->get('date_to');
-
         $query = BarthelAdl::with('elderly');
 
         if ($search) {
             $query->where('Name_Elderly', 'LIKE', "%{$search}%");
         }
 
-        // Used to show only today's results with no hint, which looked like "no data".
-        // Default is now everything, newest first; the page offers quick ranges.
-        $range = $request->get('range', 'all');
-        if ($dateFrom || $dateTo) {
-            $range = 'custom';
-            if ($dateFrom) {
-                $query->whereDate('created_at', '>=', $dateFrom);
-            }
-            if ($dateTo) {
-                $query->whereDate('created_at', '<=', $dateTo);
-            }
-        } elseif ($range === 'today') {
-            $query->whereDate('created_at', now()->toDateString());
-        } elseif (in_array($range, ['7', '30'], true)) {
-            $query->whereDate('created_at', '>=', now()->subDays((int) $range - 1)->toDateString());
-        }
+        $range = \App\Support\DateRange::apply($query, $request);
 
         $adls = $query->orderByDesc('created_at')->paginate(20);
         $adls->appends($request->all());

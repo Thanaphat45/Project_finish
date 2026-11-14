@@ -88,48 +88,6 @@
     </div>
 </div>
 
-@push('styles')
-<style>
-    .q-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; padding-bottom: 120px; }
-    .q { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; scroll-margin-top: 90px; transition: border-color .2s; }
-    .q.missing { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
-    .q fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
-    .q legend { display: flex; gap: 12px; align-items: flex-start; font-size: 19px; font-weight: 700; color: var(--ink); margin-bottom: 14px; width: 100%; float: none; }
-    .q legend small { display: block; font-size: 15px; font-weight: 400; color: var(--muted); }
-    .q-no { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); font-size: 16px; color: var(--ink-2); }
-    .q.done .q-no { background: var(--brand); color: #fff; }
-    .q-choices { display: grid; gap: 8px; }
-    .choice {
-        display: flex !important; align-items: center; gap: 14px; margin: 0; cursor: pointer;
-        padding: 14px 16px; min-height: 56px; border: 1.5px solid var(--line-2); border-radius: 12px;
-        font-weight: 500 !important; font-size: 17px !important; color: var(--ink) !important; background: var(--surface);
-    }
-    .choice:hover { border-color: var(--brand); }
-    .choice input { width: 22px; height: 22px; flex: none; accent-color: var(--brand); margin: 0; }
-    .choice-text { flex: 1; line-height: 1.5; }
-    .choice-score { flex: none; font-size: 14px; color: var(--muted); font-weight: 600; }
-    .choice:has(input:checked) { border-color: var(--brand); background: var(--brand-soft); }
-    .choice:has(input:checked) .choice-score { color: var(--brand-ink); }
-    .choice:has(input:focus-visible) { outline: 3px solid #7fb89a; outline-offset: 2px; }
-
-    .score-bar { position: fixed; left: var(--side); right: 0; bottom: 0; z-index: 1000; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px -16px rgba(0,0,0,.2); }
-    .score-bar-inner { max-width: 1280px; margin: 0 auto; padding: 12px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; }
-    .sb-progress { display: grid; gap: 6px; min-width: 160px; font-size: 15px; color: var(--ink-2); }
-    .sb-track { display: block; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden; }
-    .sb-track i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .2s; }
-    .sb-score { display: flex; align-items: center; gap: 10px; font-size: 16px; }
-    .sb-score b { font-size: 26px; }
-    .sb-actions { margin-left: auto; display: flex; gap: 10px; }
-    @media (max-width: 1100px) { .score-bar { left: 0; } }
-    @media (max-width: 640px) {
-        .q { padding: 16px; }
-        .choice { font-size: 16px !important; padding: 12px; }
-        .score-bar-inner { padding: 10px 14px; gap: 8px 16px; }
-        .sb-actions { width: 100%; }
-        .sb-actions .btn { flex: 1; }
-    }
-</style>
-@endpush
 
 @push('scripts')
 <script>

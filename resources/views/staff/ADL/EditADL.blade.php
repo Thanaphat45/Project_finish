@@ -42,11 +42,3 @@
         </form>
     </div>
 @endsection
-
-@push('styles')
-    <style>
-        .form-narrow { max-width: 860px; margin: 0 auto; }
-        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted) !important; text-decoration: none !important; margin-bottom: 8px; font-size: 15px; }
-        .back-link .material-icons { font-size: 18px; }
-    </style>
-@endpush

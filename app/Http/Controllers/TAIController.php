@@ -15,8 +15,6 @@ class TAIController extends Controller
     public function index(Request $request)
     {
         $search = $request->get('search');
-        $dateFrom = $request->get('date_from');
-        $dateTo = $request->get('date_to');
 
         $query = ScoreTAI::with(['elderly', 'user']);
 
@@ -24,20 +22,11 @@ class TAIController extends Controller
             $query->whereHas('elderly', fn($q) => $q->where('Name_Elderly', 'LIKE', "%{$search}%"));
         }
 
-        if ($dateFrom || $dateTo) {
-            if ($dateFrom) {
-                $query->whereDate('updated_at', '>=', $dateFrom);
-            }
-            if ($dateTo) {
-                $query->whereDate('updated_at', '<=', $dateTo);
-            }
-        } else {
-            $query->whereDate('updated_at', now()->toDateString());
-        }
+        $range = \App\Support\DateRange::apply($query, $request, 'updated_at');
 
-        $tai = $query->paginate(20);
+        $tai = $query->orderByDesc('updated_at')->paginate(20);
         $tai->appends($request->all());
-        return view('staff.TAI.ShowTAI', compact('tai'));
+        return view('staff.TAI.ShowTAI', compact('tai', 'range'));
     }
 
     public function edit($id)

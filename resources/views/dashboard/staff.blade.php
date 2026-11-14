@@ -9,7 +9,8 @@
         ['คำแนะนำจากแพทย์ที่รอยืนยัน', CareInstruction::whereNull('Confirm')->count(),
             route('care_instructions.index', ['unconfirmed' => 'true']), 'medical_information'],
         ['ยังไม่ได้ประเมิน ADL', Elderly::doesntHave('barthel_adl')->count(), route('adl.index'), 'accessibility_new'],
-        ['ยังไม่ได้ประเมิน TAI', Elderly::doesntHave('score_tai')->count(), route('tai.index'), 'favorite'],
+        // A TAI row is created with the ADL but only counts once its group is filled in.
+        ['ยังไม่ได้ประเมิน TAI', Elderly::whereDoesntHave('score_tai', fn ($q) => $q->whereNotNull('group'))->count(), route('tai.index'), 'favorite'],
         ['ยังไม่ได้บันทึก CG', Elderly::doesntHave('care_giver')->count(), route('cg.index'), 'volunteer_activism'],
     ];
     $todoLeft = collect($todo)->sum(fn ($t) => $t[1]);
@@ -147,7 +148,7 @@
                             {{-- TAI has no create page of its own: it opens right after an ADL is saved. --}}
                             <div class="checks">
                                 @foreach ([['ADL', $adl, route('adl.create', ['elderly_id' => $e->ID_Elderly])],
-                                           ['TAI', $e->score_tai, $adl ? route('tai.index') : route('adl.create', ['elderly_id' => $e->ID_Elderly])],
+                                           ['TAI', optional($e->score_tai)->group, $adl ? route('tai.index') : route('adl.create', ['elderly_id' => $e->ID_Elderly])],
                                            ['CG', $e->care_giver, route('cg.create', ['elderly_id' => $e->ID_Elderly])]] as [$name, $has, $href])
                                     @if ($has)
                                         <span class="check ok" title="{{ $name }} บันทึกแล้ว"><span class="material-icons">check</span>{{ $name }}</span>
