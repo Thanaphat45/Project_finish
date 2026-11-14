@@ -50,7 +50,7 @@
                     ['label' => 'ประเภทของผู้ใช้', 'class' => 'text-center'],
                     ['label' => 'ประเภทที่แพทย์ดูแล', 'class' => 'text-center'],
                     ['label' => 'อีเมล', 'class' => 'text-center'],
-                    ['label' => 'Actions', 'class' => 'text-center']
+                    ['label' => 'จัดการ', 'class' => 'text-center']
                 ]">
                 @foreach ($users as $u)
                     <tr>
@@ -69,17 +69,11 @@
                         <td class="text-center">{{ $u->Type_Doctor ?: '-' }}</td>
                         <td class="text-center">{{ $u->Email ?: 'ไม่มีข้อมูล' }}</td>
                         <td class="text-center">
-                            <div class="btn-group">
-                                <a href="{{ route('user.edit', $u->ID_User) }}" class="btn btn-link text-dark p-0 me-3"
-                                    title="แก้ไข">
-                                    <i class="fas fa-edit text-warning"></i>
-                                </a>
+                            <div class="row-actions justify-content-center">
+                                <a href="{{ route('user.edit', $u->ID_User) }}" class="btn btn-light btn-sm">แก้ไข</a>
                                 @if ($u->Type_Personnel !== 'Admin' || auth()->id() !== $u->ID_User)
-                                    <button onclick="confirmDelete('{{ $u->ID_User }}')" class="btn btn-link text-dark p-0" title="ลบ">
-                                        <i class="fas fa-trash text-danger"></i>
-                                    </button>
-                                    <form id="delete-form-{{ $u->ID_User }}" action="{{ route('user.delete', $u->ID_User) }}"
-                                        method="POST" style="display:none;">
+                                    <button type="button" onclick="confirmDelete('{{ $u->ID_User }}', @js($u->Name_User ?: $u->Username))" class="btn btn-danger btn-sm">ลบ</button>
+                                    <form id="delete-form-{{ $u->ID_User }}" action="{{ route('user.delete', $u->ID_User) }}" method="POST" hidden>
                                         @csrf @method('DELETE')
                                     </form>
                                 @endif
@@ -107,7 +101,7 @@
 @push('scripts')
     @if($role === 'Admin')
         <x-dashboard-admin-scripts />
-        <script>     function confirmDelete(id) { Swal.fire({ title: 'ยืนยันการลบ?', text: "บัญชีนี้จะถูกลบถาวร!", icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#ea0606' }).then((result) => { if (result.isConfirmed) document.getElementById('delete-form-' + id).submit(); }); }
+        <script>     function confirmDelete(id, name) { Swal.fire({ title: 'ลบบัญชีของ ' + name + '?', text: 'ผู้ใช้นี้จะเข้าระบบไม่ได้อีก และกู้คืนไม่ได้', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบบัญชี', cancelButtonText: 'ยกเลิก', confirmButtonColor: '#b42318', reverseButtons: true, focusCancel: true }).then((result) => { if (result.isConfirmed) document.getElementById('delete-form-' + id).submit(); }); }
         </script>
     @elseif($role === 'Staff')
         <x-dashboard-staff-scripts :ageGroups="$ageGroups" :adlGroups="$adlGroups" :elderlyLocations="$elderlyLocations" />

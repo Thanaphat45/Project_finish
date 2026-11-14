@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Audit Logs')
+@section('title', 'ประวัติการใช้งาน')
 
 @section('content')
     <x-card>
@@ -44,8 +44,8 @@
                             </td>
                             <td>
                                 <p class="text-xs font-weight-bold mb-0">
-                                    {{ $log->user ? $log->user->Name_User : 'System/Guest' }}</p>
-                                <p class="text-xs text-secondary mb-0">{{ $log->user ? $log->user->Type_Personnel : '-' }}</p>
+                                    {{ $log->user ? $log->user->Name_User : 'ระบบ / ไม่ระบุผู้ใช้' }}</p>
+                                <p class="text-xs text-secondary mb-0">{{ $log->user ? (['Admin' => 'ผู้ดูแลระบบ', 'Staff' => 'เจ้าหน้าที่', 'Doctor' => 'แพทย์'][$log->user->Type_Personnel] ?? $log->user->Type_Personnel) : '-' }}</p>
                             </td>
                             <td class="align-middle text-center text-sm">
                                 @if($log->action == 'created')
@@ -60,7 +60,14 @@
                             </td>
                             <td class="align-middle text-center">
                                 <span class="text-secondary text-xs font-weight-bold">
-                                    {{ class_basename($log->model_type) }} (ID: {{ $log->model_id }})
+                                    @php
+                                        $modelNames = ['Elderly' => 'ผู้สูงอายุ', 'BarthelAdl' => 'ผลประเมิน ADL', 'ScoreTAI' => 'ผลประเมิน TAI',
+                                            'CareGiver' => 'บันทึกการดูแล CG', 'ActivityCaregiver' => 'บันทึกเยี่ยมบ้าน ACG',
+                                            'CareInstruction' => 'คำแนะนำจากแพทย์', 'User' => 'บัญชีผู้ใช้', 'PerformanceReport' => 'รายงานการปฏิบัติงาน',
+                                            'News' => 'ข่าวสาร', 'Slider' => 'รูปสไลด์'];
+                                        $base = class_basename($log->model_type);
+                                    @endphp
+                                    {{ $modelNames[$base] ?? $base }} #{{ $log->model_id }}
                                 </span>
                             </td>
                             <td class="align-middle text-center">

@@ -21,6 +21,7 @@ class AuditLog extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        // users' primary key is ID_User, not id; without it every log showed "System/Guest".
+        return $this->belongsTo(User::class, 'user_id', 'ID_User');
     }
 }

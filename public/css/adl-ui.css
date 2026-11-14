@@ -328,3 +328,5 @@ body.app .step-item { display: grid; justify-items: center; gap: 6px; min-width:
 body.app .step-item span { font-size: 14px; color: var(--muted); text-align: center; }
 body.app .step-dot.active { background: var(--brand) !important; color: #fff !important; }
 body.app .step-dot.completed { background: var(--brand-soft) !important; color: var(--brand-ink) !important; }
+body.app table.dataTable tbody tr, body.app table.dataTable tbody td, body.app table.dataTable tbody th { border-color: var(--line) !important; }
+body.app table.dataTable tbody tr > * { border-bottom: 0 !important; }
