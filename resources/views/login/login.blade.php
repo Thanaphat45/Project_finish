@@ -1,228 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Login</title>
+    <title>เข้าสู่ระบบ · ระบบประเมินผู้สูงอายุ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="{{ url('assets/css/argon-dashboard.css') }}" rel="stylesheet"/>
-    <link href="{{ url('assets/css/nucleo-icons.css') }}" rel="stylesheet"/>
-    <link href="{{ url('assets/css/nucleo-svg.css') }}" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ asset('css/adl-ui.css') }}?v={{ filemtime(public_path('css/adl-ui.css')) }}">
     <style>
-        body {
-            background-color: #f8f9fa;
-            font-family: 'Open Sans', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        .login-container {
-            min-height: 85vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .login-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            transition: all 0.3s ease;
-        }
-
-        .login-card:hover {
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .login-header h4 {
-            font-weight: bold;
-        }
-
-        .login-form {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .login-form .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .login-form .form-control {
-            padding: 0.75rem;
-            border-radius: 0.25rem;
-            border: 1px solid #ced4da;
-        }
-
-        .login-form .form-control {
-            padding-right: 40px;
-        }
-
-        .login-form .btn {
-            background: #2dce89;
-            color: white;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 0.25rem;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .login-form .btn:hover {
-            background: #2dce89;
-        }
-
-        .login-footer {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        .login-footer a {
-            color: #2dce89;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        .login-footer a:hover {
-            color: #ea3005;
-        }
-
-        .alert-danger {
-            color: #721c24;
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.25rem;
-            margin-bottom: 1rem;
-        }
-
-        .brand-logo {
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-
-        .brand-logo img {
-            max-width: 100px;
-        }
-
-        .position-relative {
-            position: relative;
-        }
-
-        .toggle-password {
-            position: absolute;
-            top: 70%;
-            right: 10px;
-            transform: translateY(-50%);
-            cursor: pointer;
-        }
-
-        footer {
-            background-color: #344767;
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-        }
-
-        footer ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        footer ul li {
-            display: inline;
-        }
-
-        footer ul li a {
-            color: #fff;
-            text-decoration: none;
-        }
-
-        footer ul li a:hover {
-            text-decoration: underline;
-        }
+        body { margin: 0; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; background: var(--bg); font-family: 'Sarabun', system-ui, sans-serif; color: var(--ink); }
+        .top { display: flex; align-items: center; gap: 10px; padding: 14px 20px; background: var(--surface); border-bottom: 1px solid var(--line); }
+        .top img { height: 36px; }
+        .top b { display: block; font-size: 16px; }
+        .top small { color: var(--muted); font-size: 13px; }
+        .top nav { margin-left: auto; display: flex; gap: 18px; font-size: 15px; }
+        .top nav a { color: var(--ink-2); text-decoration: none; }
+        .top nav a:hover { color: var(--brand); }
+        main { display: grid; place-items: center; padding: 32px 16px; }
+        .card { width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+        h1 { font-size: 26px; margin: 0 0 4px; }
+        .sub { margin: 0 0 22px; color: var(--muted); }
+        label { display: grid; gap: 6px; font-weight: 600; font-size: 15px; color: var(--ink-2); margin-bottom: 14px; }
+        input { font: 17px 'Sarabun', sans-serif; height: 48px; box-sizing: border-box; padding: 8px 14px; border: 1px solid var(--line-2); border-radius: 10px; color: var(--ink); background: var(--surface); }
+        input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(29,107,70,.15); }
+        .pw { position: relative; }
+        .pw input { width: 100%; box-sizing: border-box; padding-right: 48px; }
+        .pw button { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; background: none; color: var(--muted); cursor: pointer; border-radius: 8px; }
+        .submit { width: 100%; min-height: 50px; margin-top: 6px; border: 0; border-radius: 10px; background: var(--brand); color: #fff; font: 700 17px 'Sarabun', sans-serif; cursor: pointer; }
+        .submit:hover { background: var(--brand-ink); }
+        .error { background: var(--danger-soft); color: var(--danger); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+        .demo { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+        .demo p { margin: 0 0 10px; font-size: 15px; color: var(--muted); }
+        .demo-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+        .demo-btns button { flex: 1; min-height: 44px; border: 1px solid var(--line-2); background: var(--surface); border-radius: 10px; font: 600 15px 'Sarabun', sans-serif; color: var(--ink); cursor: pointer; }
+        .demo-btns button:hover { border-color: var(--brand); background: var(--brand-soft); }
+        footer { text-align: center; padding: 18px; color: var(--muted); font-size: 14px; }
+        :focus-visible { outline: 3px solid #7fb89a; outline-offset: 2px; }
+        @media (max-width: 560px) { .top nav { display: none; } .card { padding: 22px; } }
     </style>
 </head>
 
 <body>
-    @include('layout.nav')
+    <header class="top">
+        <img src="{{ url('images/Logo.png') }}" alt="">
+        <span><b>ระบบประเมินผู้สูงอายุ</b><small>ภาวะพึ่งพิง (ADL)</small></span>
+        <nav aria-label="เมนู">
+            <a href="{{ url('/') }}">หน้าหลัก</a>
+            <a href="{{ route('about') }}">เกี่ยวกับ</a>
+            <a href="{{ route('contact') }}">ติดต่อเรา</a>
+        </nav>
+    </header>
 
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <h4>เข้าสู่ระบบ</h4>
-                <p>ป้อนอีเมลหรือชื่อผู้ใช้และรหัสผ่านของคุณเพื่อลงชื่อเข้าใช้</p>
-            </div>
-            <form class="login-form" method="POST" action="{{ route('login.submit') }}">
-                @if (Session::has('fail'))
-                <div class="alert alert-danger">{{ Session::get('fail') }}</div>
-                @endif
+    <main>
+        <div class="card">
+            <h1>เข้าสู่ระบบ</h1>
+            <p class="sub">ใช้ชื่อผู้ใช้หรืออีเมล และรหัสผ่านของคุณ</p>
+
+            @if (Session::has('fail'))
+                <div class="error" role="alert">{{ Session::get('fail') }}</div>
+            @endif
+
+            <form method="POST" action="{{ route('login.submit') }}" id="login-form">
                 @csrf
-                <div class="form-group">
-                    <label for="login">อีเมล์หรือชื่อผู้ใช้:</label>
-                    <input type="text" name="login" id="login" class="form-control" required>
-                </div>
-                <div class="form-group position-relative">
-                    <label for="password">รหัสผ่าน:</label>
-                    <input type="password" name="password" id="password" class="form-control" required>
-                    <span class="fas fa-eye toggle-password" id="togglePassword"></span>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-login">เข้าสู่ระบบ</button>
-                </div>
+                <label for="login">ชื่อผู้ใช้หรืออีเมล
+                    <input type="text" name="login" id="login" value="{{ old('login') }}" autocomplete="username" required autofocus>
+                </label>
+                <label for="password">รหัสผ่าน
+                    <span class="pw">
+                        <input type="password" name="password" id="password" autocomplete="current-password" required>
+                        <button type="button" id="togglePassword" aria-label="แสดงรหัสผ่าน"><span class="material-icons">visibility</span></button>
+                    </span>
+                </label>
+                <button type="submit" class="submit">เข้าสู่ระบบ</button>
             </form>
-            {{--  <div class="login-footer">
-                <p>
-                    หากลืมรหัสผ่าน? <a href="{{ route('password.request') }}">กดที่นี่เพื่อรีเซ็ทรหัสผ่าน</a>
-                </p>
-            </div>  --}}
 
+            <div class="demo">
+                <p>ทดลองใช้งาน (บัญชีตัวอย่าง รหัสผ่าน Demo@2026)</p>
+                <div class="demo-btns">
+                    <button type="button" data-user="demo_staff">เจ้าหน้าที่</button>
+                    <button type="button" data-user="demo_doctor">แพทย์</button>
+                </div>
+            </div>
         </div>
-    </div>
-    <footer>
-        <p>&copy; 2026 สำนักงานสาธารณสุขตัวอย่าง (Demo)</p>
-    </footer>
-    <script src="{{ url('assets/js/core/popper.min.js') }}"></script>
-    <script src="{{ url('assets/js/core/bootstrap.min.js') }}"></script>
-    <script src="{{ url('assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
-    <script src="{{ url('assets/js/plugins/smooth-scrollbar.min.js') }}"></script>
+    </main>
+
+    <footer>&copy; 2569 สำนักงานสาธารณสุขตัวอย่าง (Demo)</footer>
+
     <script>
-        var win = navigator.platform.indexOf('Win') > -1;
-        if (win && document.querySelector('#sidenav-scrollbar')) {
-            var options = {
-                damping: '0.5'
-            }
-            Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-        }
-
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordField = document.getElementById('password');
-
-        togglePassword.addEventListener('click', function() {
-            // Toggle the type attribute
-            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordField.setAttribute('type', type);
-
-            // Toggle the icon
-            this.classList.toggle('fa-eye');
-            this.classList.toggle('fa-eye-slash');
+        const pw = document.getElementById('password');
+        const toggle = document.getElementById('togglePassword');
+        toggle.addEventListener('click', () => {
+            const show = pw.type === 'password';
+            pw.type = show ? 'text' : 'password';
+            toggle.firstElementChild.textContent = show ? 'visibility_off' : 'visibility';
+            toggle.setAttribute('aria-label', show ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน');
         });
+        document.querySelectorAll('[data-user]').forEach(b => b.addEventListener('click', () => {
+            document.getElementById('login').value = b.dataset.user;
+            pw.value = 'Demo@2026';
+            document.getElementById('login-form').requestSubmit();
+        }));
     </script>
 </body>
 

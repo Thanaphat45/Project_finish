@@ -1,127 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $newsItem->title }}</title>
-    <link href="{{ url('assets/css/argon-dashboard.css') }}" rel="stylesheet" />
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+@section('title', $newsItem->title)
 
+@push('styles')
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Open Sans', sans-serif;
-            background-color: #f8f9fa;
-            color: #344767;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        .news-header {
-            text-align: center;
-            padding: 70px;
-            margin-bottom: 0px;
-            color: white;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 0px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 20px;
-            flex: 1; /* ทำให้เนื้อหาใช้พื้นที่ที่เหลืออยู่ */
-        }
-
-        .news-content {
-            margin-bottom: 20px;
-        }
-
-        .image-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .image-grid img {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        footer {
-            background-color: #344767;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            margin-top: auto; /* ทำให้ footer ติดข้างล่าง */
-        }
-
-        footer a {
-            color: white;
-            text-decoration: none;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
+        .article { max-width: 820px; margin: 0 auto; }
+        body.site .article { padding: 24px 20px 48px; }
+        .article h1 { font-size: 30px; line-height: 1.35; margin: 4px 0 16px; }
+        .article .ql-container.ql-snow { border: 0; font-family: 'Sarabun', sans-serif; font-size: 18px; }
+        .article .ql-editor { padding: 0; line-height: 1.8; }
+        .article-images { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; }
+        .article-images img { width: 100%; height: 200px; object-fit: cover; border-radius: 10px; }
     </style>
-</head>
+@endpush
 
-<body>
-
-    @include('layout.nav')
-
-    <!-- News Header -->
-    <section class="news-header">
-        <h3>{{ $newsItem->title }}</h3>
-    </section>
-
-    <!-- News Content -->
-    <div class="container">
-        <div class="news-content">
-            <div id="editor-container">
-                {!! $newsItem->content !!}
-            </div>
-        </div>
-
-        <!-- Image Grid -->
-        <div class="image-grid">
-            @foreach ($newsItem->images as $image)
-                <div class="image-item">
-                    <img src="{{ url('storage/' . $image->image_path) }}" alt="{{ $newsItem->title }}">
+@section('content')
+    <article class="article">
+        <a href="{{ url('/') }}" class="back-link"><span class="material-icons">arrow_back</span>หน้าหลัก</a>
+        <h1>{{ $newsItem->title }}</h1>
+        <div class="panel panel-pad">
+            <div id="editor-container">{!! $newsItem->content !!}</div>
+            @if ($newsItem->images->isNotEmpty())
+                <div class="article-images">
+                    @foreach ($newsItem->images as $image)
+                        <img src="{{ url('storage/' . $image->image_path) }}" alt="" loading="lazy">
+                    @endforeach
                 </div>
-            @endforeach
+            @endif
         </div>
+    </article>
+@endsection
 
-        <!-- Back to Home Link -->
-        <a href="{{ url('/') }}" class="back-link">← กลับไปหน้าหลัก</a>
-    </div>
-
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2026 สำนักงานสาธารณสุขตัวอย่าง (Demo)</p>
-    </footer>
-
-</body>
-
+@push('scripts')
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script>
-        var quill = new Quill('#editor-container', {
-
-            readOnly: true,  // Set to true to make it display-only
-        });
+        new Quill('#editor-container', { readOnly: true });
     </script>
-
-</html>
+@endpush

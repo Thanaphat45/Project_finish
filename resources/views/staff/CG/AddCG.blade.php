@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Add Care Giver')
+@section('title', 'บันทึกการดูแล CG')
 
 @push('styles')
     <style>
@@ -199,9 +199,9 @@
 
                     <!-- Wizard Step Indicators -->
                     <div class="step-indicator">
-                        <div class="step-dot active" id="dot-1">1</div>
-                        <div class="step-dot" id="dot-2">2</div>
-                        <div class="step-dot" id="dot-3">3</div>
+                        <div class="step-item"><div class="step-dot active" id="dot-1">1</div><span>ผู้สูงอายุและผู้ดูแล</span></div>
+                        <div class="step-item"><div class="step-dot" id="dot-2">2</div><span>สัญญาณชีพและอาการ</span></div>
+                        <div class="step-item"><div class="step-dot" id="dot-3">3</div><span>การประเมินและปัญหา</span></div>
                     </div>
 
                     @php

@@ -18,19 +18,21 @@ class CGController extends Controller
     {
         $query = CareGiver::with(['elderly']);
 
-        if ($request->has('search')) {
-            $query->where('Name_Elderly', 'like', '%' . $request->search . '%')
-                ->orWhere('Name_CG', 'like', '%' . $request->search . '%');
+        if ($request->filled('search')) {
+            // Grouped so the OR cannot escape the date filter below.
+            $query->where(fn ($q) => $q->where('Name_Elderly', 'like', '%' . $request->search . '%')
+                ->orWhere('Name_CG', 'like', '%' . $request->search . '%'));
         }
 
-        $date = $request->get('date', now()->toDateString());
-        if ($date) {
-            $query->whereDate('Date_CG', $date);
+        // Legacy ?date=YYYY-MM-DD links still work as a one-day custom range.
+        if ($request->filled('date') && !$request->hasAny(['date_from', 'date_to'])) {
+            $request->merge(['date_from' => $request->date, 'date_to' => $request->date]);
         }
+        $range = \App\Support\DateRange::apply($query, $request, 'Date_CG');
 
-        $careGivers = $query->paginate(20);
+        $careGivers = $query->orderByDesc('Date_CG')->orderByDesc('ID_CG')->paginate(20);
         $careGivers->appends($request->all());
-        return view('staff.CG.ShowCG', compact('careGivers'));
+        return view('staff.CG.ShowCG', compact('careGivers', 'range'));
     }
 
     public function create(Request $request)
@@ -250,20 +252,20 @@ class CGController extends Controller
     {
         $query = ActivityCaregiver::with(['caregiver']);
 
-        if ($request->has('search')) {
+        if ($request->filled('search')) {
             $query->whereHas('caregiver', function ($q) use ($request) {
                 $q->where('Name_Elderly', 'like', '%' . $request->search . '%');
             });
         }
 
-        $date = $request->get('date', now()->toDateString());
-        if ($date) {
-            $query->whereDate('Date_ACG', $date);
+        if ($request->filled('date') && !$request->hasAny(['date_from', 'date_to'])) {
+            $request->merge(['date_from' => $request->date, 'date_to' => $request->date]);
         }
+        $range = \App\Support\DateRange::apply($query, $request, 'Date_ACG');
 
-        $activities = $query->paginate(20);
+        $activities = $query->orderByDesc('Date_ACG')->orderByDesc('ID_ACG')->paginate(20);
         $activities->appends($request->all());
-        return view('staff.ACG.ShowACG', compact('activities'));
+        return view('staff.ACG.ShowACG', compact('activities', 'range'));
     }
 
     public function editActivity($id)
@@ -324,7 +326,7 @@ class CGController extends Controller
         $careGiverId = $this->getLatestCareGiverId($request->ID_Elderly, $request->activity_date);
 
         if (!$careGiverId) {
-            return redirect()->back()->withErrors(['ID_CG' => 'ไม่พบข้อมูล Care Giver สำหรับผู้สูงอายุที่เลือก']);
+            return redirect()->back()->withInput()->withErrors(['ID_CG' => 'ไม่พบข้อมูล Care Giver สำหรับผู้สูงอายุที่เลือก']);
         }
 
         // ป้องกันการประเมินซ้ำในวันเดียวกัน
@@ -333,7 +335,7 @@ class CGController extends Controller
             ->exists();
 
         if ($alreadyExists) {
-            return redirect()->back()->with('error', 'กิจกรรม ACG สำหรับวันนี้ได้รับบันทึกแล้ว ไม่สามารถบันทึกซ้ำได้');
+            return redirect()->back()->withInput()->with('error', 'กิจกรรม ACG สำหรับวันนี้ได้รับบันทึกแล้ว ไม่สามารถบันทึกซ้ำได้');
         }
 
         $activityData = [
@@ -364,7 +366,7 @@ class CGController extends Controller
         $activity->fill($activityData);
         $activity->save();
 
-        return redirect()->route('activities.create')->with('success', 'เพิ่มกิจกรรมเรียบร้อยแล้ว!');
+        return redirect()->route('acg.index')->with('success', 'บันทึกการเยี่ยมบ้านเรียบร้อยแล้ว');
     }
 
     private function getLatestCareGiverId($idElderly, $currentDate)

@@ -94,7 +94,7 @@
                                         <p class="text-secondary font-weight-bold text-xs mt-1 mb-0">โดย {{ $item->Name_Doctor }}</p>
                                         <p class="text-sm mt-3 mb-2" style="white-space: pre-line;">{{ $item->Care_instructions }}</p>
                                         <span class="badge badge-sm bg-gradient-{{ $item->Confirm ? 'success' : 'warning' }}">
-                                            {{ $item->Confirm ? 'สตาฟยืนยันแล้ว' : 'รอสตาฟยืนยัน' }}
+                                            {{ $item->Confirm ? 'สตาฟยืนยันแล้ว' : 'รอเจ้าหน้าที่ยืนยัน' }}
                                         </span>
                                     </div>
                                 </div>

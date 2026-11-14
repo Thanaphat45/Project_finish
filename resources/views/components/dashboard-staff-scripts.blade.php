@@ -25,7 +25,7 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [2], drawBorder: false } },
+                        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { borderDash: [2], drawBorder: false } },
                         x: { grid: { display: false } }
                     }
                 }
@@ -79,7 +79,7 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { beginAtZero: true, grid: { borderDash: [2], drawBorder: false } },
+                        x: { beginAtZero: true, ticks: { precision: 0 }, grid: { borderDash: [2], drawBorder: false } },
                         y: { grid: { display: false } }
                     }
                 }

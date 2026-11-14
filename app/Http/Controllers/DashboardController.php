@@ -99,11 +99,8 @@ class DashboardController extends Controller
         $query = Elderly::with(['barthel_adl', 'care_giver', 'care_instructions']);
 
         // Doctor's assigned group filter
-        $typeDoctor = $user->Type_Doctor;
-        if ($typeDoctor) {
-            $query->whereHas('barthel_adl', function ($q) use ($user) {
-                $q->where('Group_ADL', $user->Type_Doctor);
-            });
+        if ($group = $user->doctorAdlGroup()) {
+            $query->whereHas('barthel_adl', fn ($q) => $q->where('Group_ADL', $group));
         }
 
         if ($request->filled('adl_group')) {

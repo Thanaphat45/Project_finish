@@ -64,14 +64,16 @@ class Elderly extends Model
         return asset('images/avatar_other.svg');
     }
 
+    // The "current" assessment must be the newest one. A plain hasOne returned
+    // whichever row the database gave first, so pages showed stale results.
     public function barthel_adl()
     {
-        return $this->hasOne(BarthelAdl::class, 'ID_Elderly', 'ID_Elderly');
+        return $this->hasOne(BarthelAdl::class, 'ID_Elderly', 'ID_Elderly')->latestOfMany('ID_ADL');
     }
 
     public function care_giver()
     {
-        return $this->hasOne(CareGiver::class, 'ID_Elderly', 'ID_Elderly');
+        return $this->hasOne(CareGiver::class, 'ID_Elderly', 'ID_Elderly')->latestOfMany('ID_CG');
     }
 
     public function addressElderly()
@@ -81,7 +83,7 @@ class Elderly extends Model
 
     public function score_tai()
     {
-        return $this->hasOne(ScoreTAI::class, 'ID_Elderly', 'ID_Elderly');
+        return $this->hasOne(ScoreTAI::class, 'ID_Elderly', 'ID_Elderly')->latestOfMany('id');
     }
 
     // History Relations

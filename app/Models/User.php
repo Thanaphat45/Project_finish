@@ -56,4 +56,18 @@ class User extends Model implements AuthenticatableContract
         $background = str_pad(dechex(mt_rand(0xFFFFFF / 2, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
         return "https://ui-avatars.com/api/?name=" . urlencode($name) . "&background={$background}&color=fff&size=128";
     }
+
+    /**
+     * The Group_ADL value this doctor looks after, or null for all groups.
+     * Type_Doctor is stored as "ติดบ้าน" while assessments store "กลุ่มติดบ้าน";
+     * comparing them directly matched nothing, so doctors saw an empty list.
+     */
+    public function doctorAdlGroup(): ?string
+    {
+        $type = trim((string) $this->Type_Doctor);
+        if ($type === '') {
+            return null;
+        }
+        return str_starts_with($type, 'กลุ่ม') ? $type : 'กลุ่ม' . $type;
+    }
 }

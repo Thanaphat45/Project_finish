@@ -42,3 +42,4 @@ Thumbs.db
 # Misc
 .phpunit.result.cache
 .env.example.bak
+docker-compose.dev.yml
