@@ -321,3 +321,10 @@ body.app .card-header h4, body.app .card-header h5 { font-size: 22px; }
 body.app #ciTable td.text-wrap, body.app #ciTable th.text-wrap { min-width: 260px; text-align: left !important; white-space: normal; }
 body.app #ciTable td:nth-child(3) { max-width: 220px; white-space: normal; font-size: 15px !important; color: var(--ink-2); }
 body.app .btn-outline-info { background: var(--surface) !important; border: 1px solid var(--line-2) !important; color: var(--ink) !important; }
+
+/* labelled wizard steps (CG form) */
+body.app .step-indicator { gap: 8px; }
+body.app .step-item { display: grid; justify-items: center; gap: 6px; min-width: 120px; }
+body.app .step-item span { font-size: 14px; color: var(--muted); text-align: center; }
+body.app .step-dot.active { background: var(--brand) !important; color: #fff !important; }
+body.app .step-dot.completed { background: var(--brand-soft) !important; color: var(--brand-ink) !important; }
