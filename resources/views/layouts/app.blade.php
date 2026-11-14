@@ -21,9 +21,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 
     @stack('styles')
-    @auth
-        <link rel="stylesheet" href="{{ asset('css/adl-ui.css') }}?v={{ filemtime(public_path('css/adl-ui.css')) }}">
-    @endauth
+    <link rel="stylesheet" href="{{ asset('css/adl-ui.css') }}?v={{ filemtime(public_path('css/adl-ui.css')) }}">
 
     <style>
         /* Override Argon Dashboard CSS variable to use Sarabun for Thai */
@@ -92,15 +90,15 @@
 </head>
 
 @php
-    // Signed-in pages use the app shell and adl-ui.css (body.app); public pages keep the old nav.
-    $bodyClass = auth()->check() ? 'app' : '';
+    // Signed-in pages get the app shell (body.app); visitors get the public top bar (body.site).
+    $bodyClass = auth()->check() ? 'app' : 'site';
 @endphp
 
 <body class="{{ $bodyClass }}">
     @auth
         @include('layout.app-shell')
     @else
-        @include('layout.nav')
+        @include('layout.public-top')
     @endauth
 
     <main class="main-content position-relative h-100 border-radius-lg">

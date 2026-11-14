@@ -1,420 +1,145 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประเมินผู้สูงอายุที่มีภาวะพึ่งพิง (ADL)</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="{{ url('assets/css/argon-dashboard.css') }}" rel="stylesheet" />
-    <link href="{{ url('assets/css/nucleo-icons.css') }}" rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Open+Sans:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* Override Argon Dashboard CSS variable to use Sarabun for Thai */
-        :root {
-            --bs-font-sans-serif: 'Sarabun', 'Open Sans', sans-serif;
-        }
+@section('title', 'ระบบประเมินผู้สูงอายุที่มีภาวะพึ่งพิง (ADL)')
 
-        body {
-            font-family: 'Sarabun', 'Open Sans', sans-serif !important;
-            background-color: #f8f9fa;
-            color: #344767;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            padding-top: 80px;
-            /* Space for fixed navbar */
-        }
+@php
+    $counts = [
+        ['กลุ่มติดสังคม', $adlGroupCounts['กลุ่มติดสังคม'] ?? 0, 'ok', 'ช่วยเหลือตัวเองได้ดี'],
+        ['กลุ่มติดบ้าน', $adlGroupCounts['กลุ่มติดบ้าน'] ?? 0, 'todo', 'ช่วยเหลือตัวเองได้บ้าง'],
+        ['กลุ่มติดเตียง', $adlGroupCounts['กลุ่มติดเตียง'] ?? 0, 'bad', 'ต้องมีผู้ดูแลตลอด'],
+    ];
+    $total = collect($counts)->sum(fn ($c) => $c[1]);
+@endphp
 
-        .content {
-            flex: 1;
-            /* ให้เนื้อหายืดเต็มพื้นที่ที่เหลือ */
-        }
+@section('content')
+    <div class="home">
+        @if ($sliders->isNotEmpty())
+            <section class="slider" aria-roledescription="carousel" aria-label="ภาพประชาสัมพันธ์">
+                <div class="slides" id="slides">
+                    @foreach ($sliders as $slider)
+                        <img src="{{ url('storage/' . $slider->image) }}" alt="" loading="lazy">
+                    @endforeach
+                </div>
+                @if ($sliders->count() > 1)
+                    <button type="button" class="slide-btn prev" onclick="plusSlides(-1)" aria-label="ภาพก่อนหน้า"><span class="material-icons">chevron_left</span></button>
+                    <button type="button" class="slide-btn next" onclick="plusSlides(1)" aria-label="ภาพถัดไป"><span class="material-icons">chevron_right</span></button>
+                @endif
+            </section>
+        @else
+            <section class="hero panel">
+                <h1>ระบบประเมินผู้สูงอายุที่มีภาวะพึ่งพิง</h1>
+                <p>บันทึกและติดตามความสามารถในการทำกิจวัตรประจำวัน (Barthel ADL) การจำแนกกลุ่ม (TAI) การดูแลที่บ้าน และคำแนะนำจากแพทย์ ในที่เดียว</p>
+                @guest
+                    <a href="{{ url('login') }}" class="btn btn-primary">เข้าสู่ระบบ</a>
+                @else
+                    <a href="{{ route('dashboard') }}" class="btn btn-primary">ไปที่งานของฉัน</a>
+                @endguest
+            </section>
+        @endif
 
-        .news,
-        .statistics,
-        .contact-form {
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .news h2,
-        .statistics h2,
-        .contact-form h2 {
-            margin-bottom: 20px;
-        }
-
-        .news-item,
-        .stat-item {
-            margin-bottom: 15px;
-        }
-
-        .news-item h3,
-        .stat-item h3 {
-            margin-bottom: 5px;
-        }
-
-        .news-item p {
-            margin-bottom: 10px;
-        }
-
-        .news-item a {
-            color: #355e3b;
-            text-decoration: none;
-        }
-
-        .news-item a:hover {
-            text-decoration: underline;
-        }
-
-        footer {
-            background-color: #344767;
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-        }
-
-        footer ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        footer ul li {
-            display: inline;
-        }
-
-        footer ul li a {
-            color: #fff;
-            text-decoration: none;
-        }
-
-        footer ul li a:hover {
-            text-decoration: underline;
-        }
-
-        .slider {
-            position: relative;
-            overflow: hidden;
-            width: 100%;
-            height: 500px;
-            margin-bottom: 50px;
-        }
-
-        .slides {
-            display: flex;
-            transition: transform 0.5s ease-in-out;
-        }
-
-        .slides img {
-            width: 100%;
-            height: 500px;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        .prev,
-        .next {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            color: #fff;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            z-index: 1;
-        }
-
-        .prev {
-            left: 10px;
-        }
-
-        .next {
-            right: 10px;
-        }
-
-        .dashboard-card {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .dashboard-card .icon {
-            font-size: 2em;
-            color: #66a370;
-        }
-
-        .dashboard-card h3 {
-            margin: 0;
-        }
-
-        .dashboard-card p {
-            margin: 5px 0 0;
-        }
-
-        .news-item img {
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .news-container {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            margin-bottom: 15px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .news-item {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        #adlChart {
-            max-width: 100%;
-            margin: 20px 0;
-        }
-
-        .office-info {
-            position: relative;
-            background-image: url('{{ url('images/ooff.jpg') }}');
-            background-size: cover;
-            background-position: center;
-            padding: 100px 0;
-            color: white;
-            text-align: center;
-            margin-bottom: 0;
-        }
-
-        .office-info .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1;
-        }
-
-        .office-info .container {
-            position: relative;
-            z-index: 2;
-        }
-
-        .info-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .office-logo {
-            width: 150px;
-            /* ปรับขนาดให้ใหญ่ขึ้น */
-            height: auto;
-            /* รักษาอัตราส่วนภาพ */
-            margin-bottom: 20px;
-        }
-
-
-        .office-info h4 {
-            margin-bottom: 10px;
-        }
-
-        .office-info p {
-            font-size: 1.2rem;
-        }
-
-        @media (min-width: 768px) {
-            .office-info h4 {
-                font-size: 2.5rem;
-            }
-
-            .office-info p {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <!-- Navbar -->
-    @include('layout.nav')
-
-    <div class="content">
-        <!-- Slider -->
-        <section class="slider">
-            <div class="slides">
-                @foreach ($sliders as $slider)
-                    <img src="{{ url('storage/' . $slider->image) }}" alt="Slider Image">
-                @endforeach
-            </div>
-            <button class="prev" onclick="plusSlides(-1)">&#10094;</button>
-            <button class="next" onclick="plusSlides(1)">&#10095;</button>
-        </section>
-
-        <div class="container-fluid">
-            <div class="row">
-                <!-- ข่าวสารประชาสัมพันธ์ -->
-                <div class="col-sm-9">
-                    <section class="news">
-                        <h3 style="text-align: center;">ข่าวสารประชาสัมพันธ์</h3>
-                    </section>
-                    <div class="row">
-                        @foreach ($news as $newsItem)
-                            <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="news-container">
-                                    <div class="news-item">
-                                        <a href="{{ route('news.show', ['id' => $newsItem->id]) }}">
-                                            <img src="{{ $newsItem->images->first() ? url('storage/' . $newsItem->images->first()->image_path) : url('path/to/default/image.jpg') }}"
-                                                alt="ไม่มีรูปภาพ" class="card-img-top"
-                                                style="height: 180px; object-fit: cover;">
-                                        </a>
-                                        <h5 class="mt-2">
-                                            <a
-                                                href="{{ route('news.show', ['id' => $newsItem->id]) }}">{{ $newsItem->title }}</a>
-                                        </h5>
-                                    </div>
-                                </div>
-                            </div>
+        <div class="home-grid">
+            <section aria-labelledby="news-h">
+                <h2 id="news-h" class="sec-h">ข่าวสารประชาสัมพันธ์</h2>
+                @if ($news->isEmpty())
+                    <div class="panel empty"><span class="material-icons">campaign</span>ยังไม่มีข่าวประชาสัมพันธ์</div>
+                @else
+                    <div class="news-grid">
+                        @foreach ($news as $item)
+                            @php $img = $item->images->first(); @endphp
+                            <a class="news-card panel" href="{{ route('news.show', ['id' => $item->id]) }}">
+                                @if ($img)
+                                    <img src="{{ url('storage/' . $img->image_path) }}" alt="" loading="lazy">
+                                @else
+                                    <span class="news-noimg"><span class="material-icons">article</span></span>
+                                @endif
+                                <span class="news-title">{{ $item->title }}</span>
+                                @if ($item->created_at)
+                                    <small>{{ $item->created_at->locale('th')->translatedFormat('j M') }} {{ $item->created_at->year + 543 }}</small>
+                                @endif
+                            </a>
                         @endforeach
                     </div>
-                </div>
+                @endif
+            </section>
 
-                <!-- จำนวนการประเมิน ADL -->
-                <div class="col-sm-3">
-                    <div class="dashboard-card">
-                        <div>
-                            <h4>การประเมินความสามารถในการดำเนินกิจวัตรประจำวันของผู้สูงอายุ</h4>
-                        </div>
-                        <div class="icon">
-                            <i class="ni ni-check-bold"></i>
-                        </div>
-                    </div>
-                    <div class="dashboard-card">
-                        <canvas id="adlChart"></canvas>
-                    </div>
+            <aside aria-labelledby="stat-h">
+                <h2 id="stat-h" class="sec-h">ผลการประเมิน ADL</h2>
+                <div class="panel panel-pad stat">
+                    <p class="stat-total"><b>{{ number_format($total) }}</b> ครั้ง</p>
+                    <ul class="stat-list">
+                        @foreach ($counts as [$label, $n, $tone, $hint])
+                            <li>
+                                <span class="pill {{ $tone }}">{{ $label }}</span>
+                                <span class="stat-bar" aria-hidden="true"><i class="{{ $tone }}" style="width: {{ $total ? round($n / $total * 100) : 0 }}%"></i></span>
+                                <b>{{ $n }}</b>
+                                <small>{{ $hint }}</small>
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
-            </div>
+            </aside>
         </div>
 
-        <!-- Office Info Section -->
-        <section class="office-info">
-            <div class="overlay"></div>
-            <div class="container">
-                <div class="info-content">
-                    <img src="{{ url('images/logo.png') }}" alt="Logo" class="office-logo">
-                    <h4 style="color: #1BAE70;">สำนักงานสาธารณสุขตัวอย่าง (Demo)</h4>
-                </div>
-                <p>สำนักงานสาธารณสุขตัวอย่าง (Demo) ตำบลตัวอย่าง</p>
-                <p>อำเภอตัวอย่าง จังหวัดตัวอย่าง 10000 </p>
-                <p>โทร 080-000-0000 (ตัวอย่าง)</p>
+        <section class="office panel panel-pad">
+            <img src="{{ url('images/Logo.png') }}" alt="">
+            <div>
+                <h2>สำนักงานสาธารณสุขตัวอย่าง (Demo)</h2>
+                <p>ตำบลตัวอย่าง อำเภอตัวอย่าง จังหวัดตัวอย่าง 10000 · โทร 080-000-0000 (ตัวอย่าง)</p>
             </div>
         </section>
+    </div>
+@endsection
 
+@push('styles')
+    <style>
+        .home { max-width: 1180px; margin: 0 auto; }
+        body.site .home { padding: 24px 20px 48px; }
+        .slider { position: relative; overflow: hidden; border-radius: var(--radius); margin-bottom: 24px; background: #dfe6e1; aspect-ratio: 16 / 5; }
+        .slides { display: flex; height: 100%; transition: transform .5s ease; }
+        .slides img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; }
+        .slide-btn { position: absolute; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 0; background: rgba(255,255,255,.9); color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+        .slide-btn.prev { left: 12px; } .slide-btn.next { right: 12px; }
+        .hero { padding: 32px; margin-bottom: 24px; }
+        .hero h1 { font-size: 30px; margin: 0 0 8px; }
+        .hero p { color: var(--ink-2); max-width: 60ch; margin: 0 0 18px; }
+        .home-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+        .sec-h { font-size: 21px; margin: 0 0 12px; }
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+        .news-card { display: grid; gap: 6px; padding: 0 0 14px; overflow: hidden; text-decoration: none !important; color: var(--ink) !important; }
+        .news-card:hover { border-color: var(--brand); }
+        .news-card img, .news-noimg { width: 100%; height: 150px; object-fit: cover; }
+        .news-noimg { display: grid; place-items: center; background: var(--brand-soft); color: var(--brand); }
+        .news-title, .news-card small { padding: 0 14px; }
+        .news-title { font-weight: 700; font-size: 16px; line-height: 1.45; }
+        .news-card small { color: var(--muted); }
+        .stat-total { margin: 0 0 12px; color: var(--muted); }
+        .stat-total b { font-size: 32px; color: var(--ink); }
+        .stat-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+        .stat-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; }
+        .stat-list small { grid-column: 1 / -1; color: var(--muted); font-size: 14px; }
+        .stat-bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+        .stat-bar i { display: block; height: 100%; }
+        .stat-bar i.ok { background: var(--brand); } .stat-bar i.todo { background: #d89a2b; } .stat-bar i.bad { background: var(--danger); }
+        .office { display: flex; align-items: center; gap: 16px; margin-top: 28px; }
+        .office img { height: 56px; }
+        .office h2 { font-size: 18px; margin: 0; }
+        .office p { margin: 2px 0 0; color: var(--muted); }
+        @media (max-width: 900px) { .home-grid { grid-template-columns: 1fr; } .slider { aspect-ratio: 16 / 7; } }
+    </style>
+@endpush
 
-
-        <!-- Footer -->
-        <footer>
-            <p>&copy; 2026 สำนักงานสาธารณสุขตัวอย่าง (Demo)</p>
-        </footer>
-
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
-        <script>
-            let slideIndex = 0;
-            const slides = document.querySelector('.slides');
-
-            function showSlides() {
-                const totalSlides = slides.children.length;
-                slideIndex++;
-                if (slideIndex >= totalSlides) {
-                    slideIndex = 0;
-                }
-                slides.style.transform = `translateX(${-slideIndex * 100}%)`;
-            }
-
-            function plusSlides(n) {
-                slideIndex += n;
-                const totalSlides = slides.children.length;
-                if (slideIndex < 0) {
-                    slideIndex = totalSlides - 1;
-                } else if (slideIndex >= totalSlides) {
-                    slideIndex = 0;
-                }
-                slides.style.transform = `translateX(${-slideIndex * 100}%)`;
-            }
-
-            setInterval(showSlides, 3000);
-
-            const adlChartContext = document.getElementById('adlChart').getContext('2d');
-            const adlData = {
-                labels: ['กลุ่มติดสังคม', 'กลุ่มติดบ้าน', 'กลุ่มติดเตียง'],
-                datasets: [{
-                    label: 'จำนวนการประเมิน ADL',
-                    data: [
-            {{ $adlGroupCounts['กลุ่มติดสังคม'] }},
-            {{ $adlGroupCounts['กลุ่มติดบ้าน'] }},
-                        {{ $adlGroupCounts['กลุ่มติดเตียง'] }}
-                    ],
-                    backgroundColor: ['#3498db', '#2ecc71', '#e74c3c'],
-                    borderWidth: 1
-                }]
-            };
-
-            const adlChart = new Chart(adlChartContext, {
-                type: 'doughnut',
-                data: adlData,
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            enabled: true,
-                        },
-                        datalabels: {
-                            formatter: (value, ctx) => {
-                                let sum = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                let percentage = (value * 100 / sum).toFixed(2) + "%";
-                                return percentage;
-                            },
-                            color: '#fff',  // สีข้อความที่แสดง
-                            font: {
-                                weight: 'bold',
-                                size: 14
-                            }
-                        }
-                    },
-                    cutout: '50%',
-                },
-                plugins: [ChartDataLabels]  // เพิ่ม plugin datalabels เข้าไปในกราฟ
-            });
-
-        </script>
-</body>
-
-</html>
+@push('scripts')
+    <script>
+        let slideIndex = 0;
+        const slides = document.getElementById('slides');
+        function plusSlides(n) {
+            if (!slides) return;
+            const total = slides.children.length;
+            slideIndex = (slideIndex + n + total) % total;
+            slides.style.transform = `translateX(${-slideIndex * 100}%)`;
+        }
+        if (slides && slides.children.length > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            setInterval(() => plusSlides(1), 5000);
+        }
+    </script>
+@endpush
