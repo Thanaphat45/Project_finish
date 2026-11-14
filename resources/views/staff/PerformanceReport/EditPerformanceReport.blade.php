@@ -1,7 +1,7 @@
 {{-- resources/views/staff/PerformanceReport/EditPerformanceReport.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'แก้ไข Performance Report')
+@section('title', 'แก้ไขรายงานการปฏิบัติงาน')
 
 @push('styles')
   <style>

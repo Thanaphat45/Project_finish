@@ -13,11 +13,18 @@ use Carbon\Carbon;
 
 class PerformanceReportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // โหลดข้อมูลพร้อมความสัมพันธ์ที่ต้องการใช้งาน
-        $performanceReports = PerformanceReport::with('elderly', 'adl', 'tai', 'caregiver', 'user')->paginate(20);
-        return view('staff.PerformanceReport.ShowPerformanceReport', compact('performanceReports'));
+        $query = PerformanceReport::with('elderly', 'adl', 'tai', 'caregiver', 'user');
+        if ($request->filled('search')) {
+            $query->whereHas('elderly', fn ($q) => $q->where('Name_Elderly', 'like', '%' . $request->search . '%'));
+        }
+        $range = \App\Support\DateRange::apply($query, $request, 'Date');
+
+        $performanceReports = $query->orderByDesc('Date')->paginate(20);
+        $performanceReports->appends($request->all());
+        return view('staff.PerformanceReport.ShowPerformanceReport', compact('performanceReports', 'range'));
     }
 
 
@@ -59,7 +66,7 @@ class PerformanceReportController extends Controller
 
         return redirect()
             ->route('performanceReport.index')
-            ->with('success', 'Performance Report created successfully.');
+            ->with('success', 'บันทึกรายงานการปฏิบัติงานเรียบร้อยแล้ว');
     }
     public function show($id)
     {
@@ -104,7 +111,7 @@ class PerformanceReportController extends Controller
         ]);
 
         return redirect()->route('performanceReport.index')
-            ->with('success', 'Performance Report updated successfully.');
+            ->with('success', 'บันทึกการแก้ไขรายงานเรียบร้อยแล้ว');
     }
     public function destroy($id)
     {
@@ -117,7 +124,7 @@ class PerformanceReportController extends Controller
         // รีไดเรกท์กลับมาพร้อมข้อความสำเร็จ
         return redirect()
             ->route('performanceReport.index')
-            ->with('success', 'ลบ Performance Report สำเร็จแล้ว');
+            ->with('success', 'ลบรายงานเรียบร้อยแล้ว');
     }
 
     public function getPerformanceData($elderlyId)

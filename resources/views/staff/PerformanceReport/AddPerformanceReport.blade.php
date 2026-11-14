@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'เพิ่ม Performance Report')
+@section('title', 'เพิ่มรายงานการปฏิบัติงาน')
 
 @push('styles')
   <style>
@@ -119,7 +119,7 @@
           {{-- 6. วันที่ --}}
           <div class="form-group">
             <label>วันที่</label>
-            <input type="datetime-local" name="Date" class="form-control" value="{{ old('Date') }}" required>
+            <input type="datetime-local" name="Date" class="form-control" value="{{ old('Date', now()->format('Y-m-d') . 'T' . now()->format('H:i')) }}" required>
           </div>
     
           {{-- 7. สภาวะ --}}
