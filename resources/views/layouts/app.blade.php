@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 
 <head>
     <meta charset="UTF-8">
@@ -21,6 +21,9 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
 
     @stack('styles')
+    @auth
+        <link rel="stylesheet" href="{{ asset('css/adl-ui.css') }}?v={{ filemtime(public_path('css/adl-ui.css')) }}">
+    @endauth
 
     <style>
         /* Override Argon Dashboard CSS variable to use Sarabun for Thai */
@@ -89,21 +92,16 @@
 </head>
 
 @php
-    $bodyClasses = [];
-    if (auth()->check()) {
-        // Enables Argon Dashboard's sidenav layout system: on desktop the
-        // sidebar docks permanently and pushes .main-content over; on
-        // smaller screens it starts hidden and the toggle button reveals it
-        $bodyClasses[] = 'g-sidenav-show';
-    }
-    if (auth()->check() && auth()->user()->Type_Personnel === 'Staff') {
-        $bodyClasses[] = 'staff-accessible';
-    }
-    $bodyClass = implode(' ', $bodyClasses);
+    // Signed-in pages use the app shell and adl-ui.css (body.app); public pages keep the old nav.
+    $bodyClass = auth()->check() ? 'app' : '';
 @endphp
 
 <body class="{{ $bodyClass }}">
-    @include('layout.nav')
+    @auth
+        @include('layout.app-shell')
+    @else
+        @include('layout.nav')
+    @endauth
 
     <main class="main-content position-relative h-100 border-radius-lg">
         <div class="container-fluid py-4">

@@ -1,192 +1,175 @@
 @extends('layouts.app')
 
-@section('title', 'ADL Information')
+@section('title', 'ผลประเมิน ADL')
 
-@push('styles')
-    <style>
-        .modal-xl {
-            max-width: 75% !important;
-        }
-    </style>
-@endpush
+@php
+    // Thai Barthel ADL index: 10 items, 20 points in total.
+    $items = [
+        ['Feeding', 'การรับประทานอาหาร', 2],
+        ['Grooming', 'การล้างหน้า หวีผม แปรงฟัน', 1],
+        ['Transfer', 'การลุกนั่งจากที่นอน', 3],
+        ['Toilet_use', 'การใช้ห้องน้ำ', 2],
+        ['Mobility', 'การเคลื่อนที่ภายในบ้าน', 3],
+        ['Dressing', 'การสวมใส่เสื้อผ้า', 2],
+        ['Stairs', 'การขึ้นลงบันได', 2],
+        ['Bathing', 'การอาบน้ำ', 1],
+        ['Bowels', 'การกลั้นอุจจาระ', 2],
+        ['Bladder', 'การกลั้นปัสสาวะ', 2],
+    ];
+    $groupPill = fn ($g) => match ($g) {
+        'กลุ่มติดเตียง' => 'bad', 'กลุ่มติดบ้าน' => 'todo', 'กลุ่มติดสังคม' => 'ok', default => 'none',
+    };
+    $ranges = ['all' => 'ทั้งหมด', 'today' => 'วันนี้', '7' => '7 วันล่าสุด', '30' => '30 วันล่าสุด'];
+@endphp
 
 @section('content')
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if(session('info'))
-        <div class="alert alert-info">
-            {{ session('info') }}
-        </div>
-    @endif
-    @if(session('warning'))
-        <div class="alert alert-warning">
-            {{ session('warning') }}
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger">
-            {{ session('error') }}
-        </div>
-    @endif
+    @foreach (['success' => 'success', 'info' => 'info', 'warning' => 'warning', 'error' => 'danger'] as $key => $cls)
+        @if (session($key))
+            <div class="alert alert-{{ $cls }}">{{ session($key) }}</div>
+        @endif
+    @endforeach
 
-    <x-card>
-        <x-slot name="header">
-            <div
-                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 w-100">
-                <h4 class="mb-0">ประเมินความสามารถในการดำเนินชีวิตประจำวัน (ADL)</h4>
-                <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <form action="{{ route('adl.index') }}" method="GET" class="d-flex flex-wrap gap-2 align-items-center me-2">
-                        <input type="text" name="search" class="form-control form-control-sm"
-                            placeholder="ชื่อผู้สูงอายุ" style="max-width: 180px;" value="{{ request('search') }}">
-                        <div class="input-group input-group-sm" style="max-width: 260px;">
-                            <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
-                            <span class="input-group-text">ถึง</span>
-                            <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
-                        </div>
-                        <button type="submit" class="btn btn-sm btn-dark mb-0">ค้นหา</button>
-                        @if(request()->hasAny(['search', 'date_from', 'date_to']))
-                            <a href="{{ route('adl.index') }}" class="btn btn-sm btn-link mb-0 text-secondary">ล้าง</a>
-                        @endif
-                    </form>
-                    <a href="{{ route('adl.create') }}" class="btn btn-primary btn-sm mb-0">
-                        <i class="fas fa-plus"></i> เพิ่ม ADL
-                    </a>
-                    <a href="{{ route('report.all.adl') }}" target="_blank" class="btn btn-success btn-sm mb-0">
-                        <i class="fas fa-print"></i>
-                    </a>
-                    <a href="{{ route('adl.export') }}" class="btn btn-primary btn-sm mb-0">Export Excel</a>
-                </div>
+    <div class="page-head">
+        <div>
+            <h1>ผลประเมิน ADL</h1>
+            <p>ความสามารถในการทำกิจวัตรประจำวัน (Barthel ADL) · คะแนนเต็ม 20</p>
+        </div>
+        <div class="actions">
+            <a href="{{ route('adl.export') }}" class="btn btn-light"><span class="material-icons">table_view</span>ส่งออก Excel</a>
+            <a href="{{ route('report.all.adl') }}" target="_blank" rel="noopener" class="btn btn-light"><span class="material-icons">print</span>พิมพ์รายงาน</a>
+            <a href="{{ route('adl.create') }}" class="btn btn-primary"><span class="material-icons">add</span>ประเมิน ADL</a>
+        </div>
+    </div>
+
+    <section class="panel">
+        <form method="GET" action="{{ route('adl.index') }}" class="toolbar" id="list-filter">
+            <label class="grow">ค้นหาชื่อผู้สูงอายุ
+                <span class="search-box">
+                    <span class="material-icons">search</span>
+                    <input type="search" name="search" class="form-control" placeholder="พิมพ์ชื่อ" value="{{ request('search') }}" autocomplete="off">
+                </span>
+            </label>
+            <div class="seg" role="group" aria-label="ช่วงเวลา">
+                @foreach ($ranges as $key => $label)
+                    <button type="submit" name="range" value="{{ $key }}" @class(['on' => $range === $key]) @if($range === $key) aria-pressed="true" @endif>{{ $label }}</button>
+                @endforeach
             </div>
-        </x-slot>
+            <details class="more-filters" @if($range === 'custom') open @endif>
+                <summary @class(['btn', 'btn-light', 'on' => $range === 'custom'])>กำหนดวันเอง</summary>
+                <div class="more-filters-body">
+                    <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}" aria-label="ตั้งแต่วันที่">
+                    <span>ถึง</span>
+                    <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}" aria-label="ถึงวันที่">
+                    <button type="submit" class="btn btn-primary">ใช้</button>
+                </div>
+            </details>
+        </form>
 
-        <div class="table-responsive p-0">
-            <table id="adlTable" class="table align-items-center mb-0">
+        <div class="result-count">
+            พบ {{ $adls->total() }} รายการ
+            @if (request()->hasAny(['search', 'date_from', 'date_to']) || $range !== 'all')
+                · <a href="{{ route('adl.index') }}">ดูทั้งหมด</a>
+            @endif
+        </div>
+
+        <div class="table-responsive">
+            <table class="table list-table">
                 <thead>
                     <tr>
-                        <th class="text-center">วันที่</th>
-                        <th class="text-center">ชื่อผู้สูงอายุ</th>
-                        <th class="text-center">ชื่อเจ้าหน้าที่</th>
-                        <th class="text-center">คะแนนการประเมิน ADL</th>
-                        <th class="text-center">ประเภทกลุ่ม ADL</th>
-                        <th class="text-center">Actions</th>
+                        <th>ผู้สูงอายุ</th>
+                        <th>ผลประเมิน</th>
+                        <th>วันที่ประเมิน</th>
+                        <th>ผู้ประเมิน</th>
+                        <th><span class="sr-only">จัดการ</span></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($adls as $adl)
+                    @forelse ($adls as $adl)
                         <tr>
-                            <td class="text-center">{{ $adl->created_at ? $adl->created_at->format('Y-m-d') : '' }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('elderly.profile', $adl->ID_Elderly) }}">{{ $adl->Name_Elderly }}</a>
-                            </td>
-                            <td class="text-center">{{ $adl->Name_User }}</td>
-                            <td class="text-center">{{ $adl->Score_ADL }}</td>
-                            <td class="text-center">{{ $adl->Group_ADL }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('report.adl.pdf', ['id' => $adl->ID_ADL]) }}" class="btn btn-success btn-sm"
-                                    target="_blank">
-                                    ออกรายงาน
+                            <td>
+                                <a class="who" href="{{ route('elderly.profile', $adl->ID_Elderly) }}">
+                                    <img src="{{ optional($adl->elderly)->image_url }}" alt="">
+                                    <span><b>{{ $adl->Name_Elderly }}</b></span>
                                 </a>
-                                <button class="btn btn-info btn-sm" data-toggle="modal"
-                                    data-target="#adlModal-{{ $adl->ID_ADL }}">ดูข้อมูล</button>
-                                <a href="{{ route('adl.edit', ['id' => $adl->ID_ADL]) }}"
-                                    class="btn btn-warning btn-sm">แก้ไข</a>
-                                <button type="button" class="btn btn-danger btn-sm"
-                                    onclick="confirmDelete('{{ $adl->ID_ADL }}')">ลบ</button>
-                                <form id="delete-adl-form-{{ $adl->ID_ADL }}"
-                                    action="{{ route('adl.destroy', ['id' => $adl->ID_ADL]) }}" method="POST"
-                                    style="display: none;">
-                                    @csrf
-                                    @method('DELETE')
-                                </form>
+                            </td>
+                            <td>
+                                <span class="score">
+                                    <b>{{ $adl->Score_ADL }}</b><small>/20</small>
+                                    <span class="pill {{ $groupPill($adl->Group_ADL) }}">{{ str_replace('กลุ่ม', '', $adl->Group_ADL) }}</span>
+                                </span>
+                            </td>
+                            <td>{{ $adl->created_at?->locale('th')->translatedFormat('j M') }} {{ $adl->created_at ? $adl->created_at->year + 543 : '' }}</td>
+                            <td>{{ $adl->Name_User }}</td>
+                            <td>
+                                <div class="row-actions">
+                                    <button type="button" class="btn btn-light btn-sm" data-toggle="modal" data-target="#adlModal-{{ $adl->ID_ADL }}">ดูรายละเอียด</button>
+                                    <details class="app-pop">
+                                        <summary class="btn btn-light btn-sm" aria-label="ตัวเลือกเพิ่มเติม"><span class="material-icons">more_horiz</span></summary>
+                                        <div class="app-pop-panel">
+                                            <a href="{{ route('adl.edit', ['id' => $adl->ID_ADL]) }}"><span class="material-icons">edit</span>แก้ไขผลประเมิน</a>
+                                            <a href="{{ route('report.adl.pdf', ['id' => $adl->ID_ADL]) }}" target="_blank" rel="noopener"><span class="material-icons">picture_as_pdf</span>ออกรายงาน PDF</a>
+                                            <button type="button" class="text-danger" onclick="confirmDelete('{{ $adl->ID_ADL }}', @js($adl->Name_Elderly))"><span class="material-icons">delete</span>ลบผลประเมินนี้</button>
+                                        </div>
+                                    </details>
+                                    <form id="delete-adl-form-{{ $adl->ID_ADL }}" action="{{ route('adl.destroy', ['id' => $adl->ID_ADL]) }}" method="POST" hidden>@csrf @method('DELETE')</form>
+                                </div>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty">
+                                    <span class="material-icons">assignment</span>
+                                    @if ($range === 'today')
+                                        วันนี้ยังไม่มีการประเมิน ADL · <a href="{{ route('adl.index') }}">ดูทั้งหมด</a>
+                                    @elseif (request()->hasAny(['search', 'date_from', 'date_to']) || $range !== 'all')
+                                        ไม่พบผลประเมินที่ตรงเงื่อนไข · <a href="{{ route('adl.index') }}">ดูทั้งหมด</a>
+                                    @else
+                                        ยังไม่มีผลประเมิน ADL · <a href="{{ route('adl.create') }}">เริ่มประเมินคนแรก</a>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
-            <div class="mt-3">
-                {{ $adls->links() }}
-            </div>
         </div>
-    </x-card>
+        @if ($adls->hasPages())
+            <div class="panel-pad">{{ $adls->links() }}</div>
+        @endif
+    </section>
 
-    <!-- ADL Modals -->
     @foreach ($adls as $adl)
-        <div class="modal fade" id="adlModal-{{ $adl->ID_ADL }}" tabindex="-1"
-            aria-labelledby="adlModalLabel-{{ $adl->ID_ADL }}" aria-hidden="true">
-            <div class="modal-dialog modal-xl">
-                <div class="modal-content">
+        <div class="modal fade" id="adlModal-{{ $adl->ID_ADL }}" tabindex="-1" aria-labelledby="adlModalLabel-{{ $adl->ID_ADL }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+                <div class="modal-content adl-sheet">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="adlModalLabel-{{ $adl->ID_ADL }}">
-                            ข้อมูลประเมินความสามารถในการดำเนินชีวิตประจำวัน (ADL) ของ {{ $adl->Name_Elderly }}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <div>
+                            <h2 class="modal-title" id="adlModalLabel-{{ $adl->ID_ADL }}">{{ $adl->Name_Elderly }}</h2>
+                            <p class="text-muted mb-0">ประเมินเมื่อ {{ $adl->created_at?->format('d/m/') }}{{ $adl->created_at ? $adl->created_at->year + 543 : '' }} โดย {{ $adl->Name_User }}</p>
+                        </div>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="ปิด"><span aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>หัวข้อการประเมิน</th>
-                                    <th>คะแนน</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1. การรับประทานอาหาร (Feeding)</td>
-                                    <td>{{ $adl->Feeding }}</td>
-                                </tr>
-                                <tr>
-                                    <td>2. การล้างหน้า แต่งตัว (Grooming)</td>
-                                    <td>{{ $adl->Grooming }}</td>
-                                </tr>
-                                <tr>
-                                    <td>3. การลุกนั่งจากที่นอน (Transfer)</td>
-                                    <td>{{ $adl->Transfer }}</td>
-                                </tr>
-                                <tr>
-                                    <td>4. การใช้ห้องน้ำ (Toilet Use)</td>
-                                    <td>{{ $adl->Toilet_use }}</td>
-                                </tr>
-                                <tr>
-                                    <td>5. การเคลื่อนที่ภายในบ้าน (Mobility)</td>
-                                    <td>{{ $adl->Mobility }}</td>
-                                </tr>
-                                <tr>
-                                    <td>6. การสวมใส่เสื้อผ้า (Dressing)</td>
-                                    <td>{{ $adl->Dressing }}</td>
-                                </tr>
-                                <tr>
-                                    <td>7. การขึ้นลงบันได (Stairs)</td>
-                                    <td>{{ $adl->Stairs }}</td>
-                                </tr>
-                                <tr>
-                                    <td>8. การอาบน้ำ (Bathing)</td>
-                                    <td>{{ $adl->Bathing }}</td>
-                                </tr>
-                                <tr>
-                                    <td>9. การควบคุมการถ่ายอุจจาระ (Bowels)</td>
-                                    <td>{{ $adl->Bowels }}</td>
-                                </tr>
-                                <tr>
-                                    <td>10. การควบคุมการถ่ายปัสสาวะ (Bladder)</td>
-                                    <td>{{ $adl->Bladder }}</td>
-                                </tr>
-                                <tr class="table-info">
-                                    <td><strong>คะแนนรวม</strong></td>
-                                    <td><strong>{{ $adl->Score_ADL }}</strong></td>
-                                </tr>
-                                <tr class="table-primary">
-                                    <td><strong>กลุ่ม ADL</strong></td>
-                                    <td><strong>{{ $adl->Group_ADL }}</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="sheet-total">
+                            <span><b>{{ $adl->Score_ADL }}</b>/20 คะแนน</span>
+                            <span class="pill {{ $groupPill($adl->Group_ADL) }}">{{ $adl->Group_ADL }}</span>
+                        </div>
+                        <ul class="sheet-items">
+                            @foreach ($items as $i => [$field, $label, $max])
+                                @php $v = (int) $adl->{$field}; @endphp
+                                <li>
+                                    <span class="n">{{ $i + 1 }}</span>
+                                    <span class="l">{{ $label }}</span>
+                                    <span class="bar" aria-hidden="true"><i style="width: {{ $max ? ($v / $max) * 100 : 0 }}%"></i></span>
+                                    <span class="v">{{ $v }}/{{ $max }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">ปิด</button>
+                        <a href="{{ route('adl.edit', ['id' => $adl->ID_ADL]) }}" class="btn btn-light">แก้ไข</a>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">ปิด</button>
                     </div>
                 </div>
             </div>
@@ -194,101 +177,66 @@
     @endforeach
 @endsection
 
-@push('scripts')
-    {{-- html2pdf script removed --}}
-    <script>
-        $(document).ready(function () {
-            $('#adlTable').DataTable({
-                "language": {
-                    "paginate": {
-                        "previous": "ก่อนหน้า",
-                        "next": "ถัดไป"
-                    },
-                    "search": "ค้นหา : ",
-                    "lengthMenu": "แสดง _MENU_ รายการ",
-                    "zeroRecords": "ไม่พบข้อมูล",
-                    "info": "กำลังแสดงรายการ _START_ ถึง _END_ จากทั้งหมด _TOTAL_ รายการ",
-                    "infoEmpty": "ไม่พบข้อมูล",
-                    "infoFiltered": "(filtered from _MAX_ total records)"
-                },
-                "dom": '<"row"<"col-sm-12 col-md-12"l><"col-sm-12 col-md-12"f>>t<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>'
-            });
-        });
-
-        function confirmDelete(id) {
-            Swal.fire({
-                title: 'คุณแน่ใจหรือไม่?',
-                text: "คุณจะไม่สามารถย้อนกลับได้หลังจากลบ!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'ยืนยัน',
-                cancelButtonText: 'ยกเลิก'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('delete-adl-form-' + id).submit();
-                }
-            });
+@push('styles')
+    <style>
+        .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; background: var(--surface); }
+        .seg button { border: 0; background: none; min-height: 44px; padding: 0 14px; font: 600 15px 'Sarabun', sans-serif; color: var(--ink-2); }
+        .seg button + button { border-left: 1px solid var(--line); }
+        .seg button.on { background: var(--brand-soft); color: var(--brand-ink); }
+        .more-filters { position: relative; }
+        .more-filters summary { list-style: none; }
+        .more-filters summary::-webkit-details-marker { display: none; }
+        .more-filters summary.on { border-color: var(--brand) !important; color: var(--brand-ink) !important; }
+        .more-filters-body {
+            position: absolute; z-index: 20; top: calc(100% + 6px); right: 0; display: flex; gap: 8px; align-items: center;
+            background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; box-shadow: 0 12px 32px -12px rgba(0,0,0,.25);
         }
+        .list-table .who { text-decoration: none !important; color: var(--ink) !important; }
+        .score { display: inline-flex; align-items: center; gap: 10px; }
+        .score b { font-size: 20px; }
+        .score small { color: var(--muted); margin-left: -8px; }
+        .row-actions .app-pop > summary { padding: 4px 8px !important; }
+        .adl-sheet .modal-header { align-items: flex-start; }
+        .adl-sheet .modal-title { font-size: 22px; margin: 0; }
+        .sheet-total { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; font-size: 17px; }
+        .sheet-total b { font-size: 32px; }
+        .sheet-items { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+        .sheet-items li { display: grid; grid-template-columns: 28px 1fr 140px 48px; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+        .sheet-items .n { color: var(--muted); font-size: 14px; }
+        .sheet-items .bar { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+        .sheet-items .bar i { display: block; height: 100%; background: var(--brand); }
+        .sheet-items .v { text-align: right; font-weight: 700; }
+        @media (max-width: 640px) { .sheet-items li { grid-template-columns: 24px 1fr 48px; } .sheet-items .bar { display: none; } }
+    </style>
+@endpush
 
-        // PDF Generation Logic
-        document.getElementById('generate-pdf')?.addEventListener('click', function () {
-            var filteredData = $('#adlTable').DataTable().rows({ filter: 'applied' }).data().toArray();
-            if (filteredData.length === 0) {
-                Swal.fire('ไม่พบข้อมูลที่ตรงกับการค้นหา', '', 'error');
-                return;
-            }
-
-            var reportContent = document.createElement('div');
-            reportContent.innerHTML = `
-                                <style>
-                                    * { font-family: 'Open Sans', Arial, sans-serif !important; color: black !important; background-color: white !important; }
-                                    h5 { font-size: 20px; margin: 0; text-align: center; }
-                                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
-                                    th, td { padding: 8px; text-align: center; border: 1px solid black; }
-                                    td { font-size: 12px; }
-                                </style>
-                                <h5>รายงานความสามารถในการดำเนินชีวิตประจำวัน (ADL)</h5>
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>วันที่</th>
-                                            <th>ชื่อผู้สูงอายุ</th>
-                                            <th>ชื่อเจ้าหน้าที่</th>
-                                            <th>คะแนน ADL</th>
-                                            <th>กลุ่ม ADL</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${filteredData.map(row => `
-                                            <tr>
-                                                <td>${row[0]}</td>
-                                                <td>${row[1]}</td>
-                                                <td>${row[2]}</td>
-                                                <td>${row[3]}</td>
-                                                <td>${row[4]}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            `;
-
-            const opt = {
-                margin: 0.5,
-                filename: 'รายงาน_ADL_ทั้งหมด.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opt).from(reportContent).output('blob').then(function (pdfBlob) {
-                var pdfUrl = URL.createObjectURL(pdfBlob);
-                var pdfWindow = window.open();
-                pdfWindow.location.href = pdfUrl;
+@push('scripts')
+    <script>
+        (function () {
+            const form = document.getElementById('list-filter');
+            const q = form.querySelector('input[name=search]');
+            const dates = form.querySelectorAll('input[type=date]');
+            // Searching by text keeps the range that is on screen.
+            const keep = document.createElement('input');
+            keep.type = 'hidden'; keep.name = 'range'; keep.value = @js($range === 'custom' ? 'all' : $range);
+            let t;
+            q.addEventListener('input', () => {
+                clearTimeout(t);
+                t = setTimeout(() => { form.appendChild(keep); form.submit(); }, 600);
             });
-        });
+            if (q.value) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+            form.addEventListener('submit', e => {
+                // A quick-range button replaces any custom dates.
+                if (e.submitter && e.submitter.name === 'range') dates.forEach(d => d.disabled = true);
+            });
+        })();
 
-        // Script removed to use server-side PDF instead for better formatting consistency (18px font)
+        function confirmDelete(id, name) {
+            Swal.fire({
+                title: 'ลบผลประเมิน ADL ของ ' + name + '?', text: 'ลบแล้วกู้คืนไม่ได้', icon: 'warning',
+                showCancelButton: true, confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#b42318', reverseButtons: true, focusCancel: true
+            }).then(r => { if (r.isConfirmed) document.getElementById('delete-adl-form-' + id).submit(); });
+        }
     </script>
 @endpush

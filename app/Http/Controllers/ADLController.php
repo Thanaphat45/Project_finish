@@ -29,28 +29,38 @@ class ADLController extends Controller
             $query->where('Name_Elderly', 'LIKE', "%{$search}%");
         }
 
+        // Used to show only today's results with no hint, which looked like "no data".
+        // Default is now everything, newest first; the page offers quick ranges.
+        $range = $request->get('range', 'all');
         if ($dateFrom || $dateTo) {
+            $range = 'custom';
             if ($dateFrom) {
                 $query->whereDate('created_at', '>=', $dateFrom);
             }
             if ($dateTo) {
                 $query->whereDate('created_at', '<=', $dateTo);
             }
-        } else {
+        } elseif ($range === 'today') {
             $query->whereDate('created_at', now()->toDateString());
+        } elseif (in_array($range, ['7', '30'], true)) {
+            $query->whereDate('created_at', '>=', now()->subDays((int) $range - 1)->toDateString());
         }
 
-        $adls = $query->paginate(20);
+        $adls = $query->orderByDesc('created_at')->paginate(20);
         $adls->appends($request->all());
 
-        return view('staff.ADL.ShowADL', compact('adls'));
+        return view('staff.ADL.ShowADL', compact('adls', 'range'));
     }
 
     public function create(Request $request)
     {
         $elderlies = Elderly::select('ID_Elderly', 'Name_Elderly')->get();
         $selected_elderly_id = $request->query('elderly_id');
-        return view('staff.ADL.ADL', compact('elderlies', 'selected_elderly_id'));
+        // One ADL per elder per day: tell the form up front which elders are already done,
+        // so staff are warned on selection instead of losing their answers on save.
+        $assessedToday = BarthelAdl::whereDate('created_at', now()->toDateString())
+            ->pluck('ID_ADL', 'ID_Elderly');
+        return view('staff.ADL.ADL', compact('elderlies', 'selected_elderly_id', 'assessedToday'));
     }
 
     public function submitADL(Request $request)
@@ -76,7 +86,7 @@ class ADLController extends Controller
             ->exists();
 
         if ($alreadyToday) {
-            return redirect()->back()->with('error', 'ผู้สูงอายุคนนี้ได้รับการประเมิน ADL ในวันนี้แล้ว ไม่สามารถประเมินซ้ำได้');
+            return redirect()->back()->withInput()->with('error', 'ผู้สูงอายุคนนี้ได้รับการประเมิน ADL ในวันนี้แล้ว ไม่สามารถประเมินซ้ำได้');
         }
 
         // Calculate the total score
@@ -143,7 +153,9 @@ class ADLController extends Controller
             return redirect()->route('tai.edit', $tai->id)->with('success', 'ส่งการประเมิน ADL สำเร็จแล้ว! กรุณาประเมิน TAI ต่อ');
         }
 
-        return redirect()->back()->with('success', 'ส่งการประเมิน ADL สำเร็จแล้ว!');
+        // Back to the list (newest first) so the new result is visible, not an empty form.
+        return redirect()->route('adl.index')
+            ->with('success', "บันทึกผล ADL ของ {$elderly->Name_Elderly} แล้ว · {$totalScore} คะแนน ({$group})");
     }
 
     public function edit($id)
