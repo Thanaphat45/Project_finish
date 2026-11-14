@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Performance Reports')
+@section('title', 'รายงานการปฏิบัติงาน')
 
 @section('content')
     <x-card>
         <x-slot name="header">
-            <h4>Performance Reports</h4>
+            <h4>รายงานการปฏิบัติงาน</h4>
             <div class="d-flex gap-2">
                 <a href="{{ route('performanceReport.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> เพิ่ม Report
+                    <i class="fas fa-plus"></i> เพิ่มรายงาน
                 </a>
             </div>
         </x-slot>

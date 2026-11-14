@@ -180,7 +180,7 @@ body.app .card-header { background: var(--surface) !important; border-bottom: 1p
 /* ---------- tables ---------- */
 body.app table.table, body.app table.dataTable { color: var(--ink); margin: 0 !important; border-collapse: collapse !important; }
 body.app table.table thead th, body.app table.dataTable thead th {
-  background: #f7f9f7; color: var(--ink-2) !important; font-size: 14px !important; font-weight: 600 !important;
+  background-color: #f7f9f7; color: var(--ink-2) !important; font-size: 14px !important; font-weight: 600 !important;
   text-transform: none !important; letter-spacing: 0 !important; opacity: 1 !important;
   border-bottom: 1px solid var(--line) !important; border-top: 0 !important; padding: 12px 16px !important; white-space: nowrap;
 }
@@ -316,3 +316,7 @@ body.app .bg-gradient-warning { background: var(--warn-soft) !important; color: 
 body.app .bg-gradient-danger { background: var(--danger-soft) !important; color: var(--danger) !important; }
 body.app .bg-gradient-secondary, body.app .bg-gradient-dark { background: #eef1ef !important; color: var(--ink-2) !important; }
 body.app .card-header h4, body.app .card-header h5 { font-size: 22px; }
+
+/* care-instruction list: give the advice text room, keep address compact */
+body.app #ciTable td.text-wrap, body.app #ciTable th.text-wrap { min-width: 260px; text-align: left !important; white-space: normal; }
+body.app #ciTable td:nth-child(3) { max-width: 220px; white-space: normal; font-size: 15px !important; color: var(--ink-2); }
