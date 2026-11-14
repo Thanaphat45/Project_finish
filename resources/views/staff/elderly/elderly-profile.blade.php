@@ -4,6 +4,9 @@
 
 @section('content')
     <a href="{{ route('dashboard') }}" class="back-link"><span class="material-icons">arrow_back</span>ผู้สูงอายุในความดูแล</a>
+    @foreach (['success' => 'success', 'error' => 'danger'] as $key => $cls)
+        @if (session($key))<div class="alert alert-{{ $cls }}">{{ session($key) }}</div>@endif
+    @endforeach
     <section class="panel panel-pad profile-head">
         <img src="{{ $elderly->image_url }}" alt="">
         <div class="profile-id">

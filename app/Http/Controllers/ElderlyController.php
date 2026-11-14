@@ -23,7 +23,7 @@ class ElderlyController extends Controller
     public function Storeelderly(ElderlyRequest $request)
     {
 
-        DB::transaction(function () use ($request) {
+        $elderly = DB::transaction(function () use ($request) {
             $elderly = new Elderly();
             $elderly->fill($request->only(['Name_Elderly', 'ID_Card', 'Gender', 'Birthday', 'Address', 'Phone_Elderly']));
             $imageService = app(\App\Services\ImageUploadService::class);
@@ -37,9 +37,14 @@ class ElderlyController extends Controller
             $addressElderly->Latitude_position = $request->input('Lat');
             $addressElderly->Longitude_position = $request->input('Lng');
             $addressElderly->save();
+
+            return $elderly;
         });
 
-        return redirect()->route('dashboard')->with('success', 'เพิ่มข้อมูลผู้สูงอายุเรียบร้อยแล้ว');
+        // The next step is almost always the first ADL, so land on the profile,
+        // which has the "assess ADL" button at the top.
+        return redirect()->route('elderly.profile', $elderly->ID_Elderly)
+            ->with('success', "เพิ่ม {$elderly->Name_Elderly} แล้ว · ขั้นต่อไป: กด \"ประเมิน ADL\"");
     }
 
 
@@ -75,7 +80,7 @@ class ElderlyController extends Controller
             $addressElderly->save();
         });
 
-        return redirect()->route('dashboard')->with('success', 'อัปเดตข้อมูลผู้สูงอายุเรียบร้อยแล้ว');
+        return redirect()->route('elderly.profile', $id)->with('success', 'บันทึกการแก้ไขเรียบร้อยแล้ว');
     }
 
     public function Deleteelderly($id)
