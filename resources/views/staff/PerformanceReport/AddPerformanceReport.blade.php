@@ -93,6 +93,13 @@
             </select>
           </div>
     
+          {{-- Shown when the chosen elder is missing an assessment the report needs --}}
+          <div class="alert alert-warning" id="prereq" role="alert" hidden>
+            <strong>ยังบันทึกรายงานนี้ไม่ได้</strong>
+            <p class="mb-1">รายงานต้องใช้ผล ADL, TAI และ CG ล่าสุดของผู้สูงอายุ แต่คนนี้ยังไม่มี:</p>
+            <ul class="mb-0" id="prereq-list"></ul>
+          </div>
+
           {{-- 3. TAI ล่าสุด --}}
           <div class="form-group">
             <label>TAI (ล่าสุด)</label>
@@ -197,6 +204,18 @@
                     ? `<option value="${res.cg.id}" selected>${res.cg.label}</option>`
                     : '<option value="">ไม่พบ CG</option>'
                 );
+
+              // Say up front what is missing, with a link to do it, instead of
+              // letting a hidden "required" block the save later.
+              const missing = [];
+              if (!res.adl) missing.push(['ยังไม่ได้ประเมิน ADL', "{{ route('adl.create') }}?elderly_id=" + id, 'ประเมิน ADL']);
+              if (!res.tai) missing.push(['ยังไม่ได้ประเมิน TAI (ทำต่อหลังบันทึก ADL)', "{{ route('tai.index') }}", 'ไปที่หน้า TAI']);
+              if (!res.cg) missing.push(['ยังไม่มีบันทึกการดูแล (CG)', "{{ route('cg.create') }}?elderly_id=" + id, 'บันทึก CG']);
+              const box = document.getElementById('prereq');
+              document.getElementById('prereq-list').innerHTML = missing
+                .map(([text, href, label]) => `<li>${text} · <a href="${href}">${label}</a></li>`).join('');
+              box.hidden = missing.length === 0;
+              $('button[type=submit].btn-success').prop('disabled', missing.length > 0);
             });
           });
         </script>
