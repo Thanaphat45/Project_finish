@@ -1,110 +1,83 @@
 @extends('layouts.app')
 
-@section('title', 'ACG Information')
+@section('title', 'บันทึกเยี่ยมบ้าน ACG')
 
 @section('content')
-    <x-card>
-        <x-slot name="header">
-            <div
-                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 w-100">
-                <h4 class="mb-0">การประเมินกิจกรรมการดูแลผู้สูงอายุ (ACG)</h4>
-                <div class="d-flex flex-wrap gap-2 align-items-center">
-                    <form action="{{ route('acg.index') }}" method="GET" class="d-flex gap-2 align-items-center me-2">
-                        <input type="date" name="date" class="form-control form-control-sm" value="{{ request('date') }}">
-                        <button type="submit" class="btn btn-sm btn-dark mb-0">ค้นหา</button>
-                        @if(request('date'))
-                            <a href="{{ route('acg.index') }}" class="btn btn-sm btn-link mb-0 text-secondary">ล้าง</a>
-                        @endif
-                    </form>
-                    <a href="{{ route('activities.create') }}" class="btn btn-primary btn-sm mb-0">
-                        <i class="fas fa-plus"></i> เพิ่ม ACG
-                    </a>
-                    <a href="{{ route('report.all.acg') }}" target="_blank" class="btn btn-success btn-sm mb-0">
-                        <i class="fas fa-print"></i>
-                    </a>
-                </div>
-            </div>
-        </x-slot>
+    @foreach (['success' => 'success', 'info' => 'info', 'warning' => 'warning', 'error' => 'danger'] as $key => $cls)
+        @if (session($key))<div class="alert alert-{{ $cls }}">{{ session($key) }}</div>@endif
+    @endforeach
 
-        <div class="table-responsive p-0">
-            <table id="acgTable" class="table align-items-center mb-0">
+    <div class="page-head">
+        <div>
+            <h1>บันทึกเยี่ยมบ้าน (ACG)</h1>
+            <p>กิจกรรมการดูแลผู้สูงอายุที่บ้าน (Activity of Care Giver)</p>
+        </div>
+        <div class="actions">
+            <a href="{{ route('report.all.acg') }}" target="_blank" rel="noopener" class="btn btn-light"><span class="material-icons">print</span>พิมพ์รายงาน</a>
+            <a href="{{ route('activities.create') }}" class="btn btn-primary"><span class="material-icons">add</span>บันทึกการเยี่ยม</a>
+        </div>
+    </div>
+
+    <section class="panel">
+        <x-list-toolbar :action="route('acg.index')" :range="$range" :total="$activities->total()" />
+
+        <div class="table-responsive">
+            <table class="table list-table">
                 <thead>
                     <tr>
-                        <th class="text-center">วันที่</th>
-                        <th class="text-center">ชื่อผู้สูงอายุ</th>
-                        <th class="text-center">ชื่อผู้ดูแลผู้สูงอายุ</th>
-                        <th class="text-center">Actions</th>
+                        <th>ผู้สูงอายุ</th>
+                        <th>ผู้ดูแล</th>
+                        <th>ผลการประเมิน</th>
+                        <th>วันที่เยี่ยม</th>
+                        <th><span class="sr-only">จัดการ</span></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($activities as $activity)
+                    @forelse ($activities as $activity)
+                        @php $cg = $activity->caregiver; $evaluated = !is_null($activity->Evaluate); @endphp
                         <tr>
-                            <td class="text-center">{{ $activity->Date_ACG }}</td>
-                            <td class="text-center">{{ $activity->caregiver->Name_Elderly }}</td>
-                            <td class="text-center">{{ $activity->caregiver->Name_CG }}</td>
-                            <td class="text-center">
-                                <a href="{{ route('report.acg', ['id' => $activity->ID_ACG]) }}" target="_blank"
-                                    class="btn btn-success btn-sm">ออกรายงาน</a>
-                                <a href="{{ route('acg.edit', ['id' => $activity->ID_ACG]) }}"
-                                    class="btn btn-sm {{ is_null($activity->Evaluate) ? 'btn-success' : 'btn-warning' }}">
-                                    <i class="fas fa-edit"></i>
-                                    {{ is_null($activity->Evaluate) ? 'เพิ่มแบบประเมิน' : 'แก้ไขแบบประเมิน' }}
-                                </a>
-                                <form id="delete-acg-form-{{ $activity->ID_ACG }}"
-                                    action="{{ route('acg.destroy', ['id' => $activity->ID_ACG]) }}" method="POST"
-                                    style="display:inline-block;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-danger btn-sm"
-                                        onclick="confirmDelete('{{ $activity->ID_ACG }}')">ลบ</button>
-                                </form>
+                            <td><b>{{ $cg->Name_Elderly ?? '–' }}</b></td>
+                            <td>{{ $cg->Name_CG ?? '–' }}</td>
+                            <td>{!! $evaluated ? '<span class="pill ok">ประเมินแล้ว</span>' : '<span class="pill todo">ยังไม่ได้ประเมิน</span>' !!}</td>
+                            <td>{{ $activity->Date_ACG ? \Carbon\Carbon::parse($activity->Date_ACG)->locale('th')->translatedFormat('j M') . ' ' . (\Carbon\Carbon::parse($activity->Date_ACG)->year + 543) : '–' }}</td>
+                            <td>
+                                <div class="row-actions">
+                                    <a href="{{ route('acg.edit', ['id' => $activity->ID_ACG]) }}" @class(['btn', 'btn-sm', 'btn-light' => $evaluated, 'btn-primary' => !$evaluated])>{{ $evaluated ? 'แก้ไข' : 'ประเมินผล' }}</a>
+                                    <details class="app-pop">
+                                        <summary class="btn btn-light btn-sm" aria-label="ตัวเลือกเพิ่มเติม"><span class="material-icons">more_horiz</span></summary>
+                                        <div class="app-pop-panel">
+                                            <a href="{{ route('report.acg', ['id' => $activity->ID_ACG]) }}" target="_blank" rel="noopener"><span class="material-icons">picture_as_pdf</span>ออกรายงาน PDF</a>
+                                            <button type="button" class="text-danger" onclick="confirmDelete('delete-acg-form-{{ $activity->ID_ACG }}', @js($cg->Name_Elderly ?? ''))"><span class="material-icons">delete</span>ลบบันทึกนี้</button>
+                                        </div>
+                                    </details>
+                                    <form id="delete-acg-form-{{ $activity->ID_ACG }}" action="{{ route('acg.destroy', ['id' => $activity->ID_ACG]) }}" method="POST" hidden>@csrf @method('DELETE')</form>
+                                </div>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr><td colspan="5"><div class="empty"><span class="material-icons">house</span>
+                            @if (request()->hasAny(['search', 'date_from', 'date_to', 'date']) || $range !== 'all')
+                                ไม่พบบันทึกที่ตรงเงื่อนไข · <a href="{{ route('acg.index') }}">ดูทั้งหมด</a>
+                            @else
+                                ยังไม่มีบันทึกการเยี่ยมบ้าน · <a href="{{ route('activities.create') }}">บันทึกครั้งแรก</a>
+                            @endif
+                        </div></td></tr>
+                    @endforelse
                 </tbody>
             </table>
-            <div class="mt-3 px-3">
-                {{ $activities->links() }}
-            </div>
         </div>
-    </x-card>
+        @if ($activities->hasPages())<div class="panel-pad">{{ $activities->links() }}</div>@endif
+    </section>
 @endsection
 
 @push('scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
     <script>
-        $(document).ready(function () {
-            $('#acgTable').DataTable({
-                "language": {
-                    "paginate": { "previous": "ก่อนหน้า", "next": "ถัดไป" },
-                    "search": "ค้นหา : ",
-                    "lengthMenu": "แสดง _MENU_ รายการ",
-                    "zeroRecords": "ไม่พบข้อมูล",
-                    "info": "กำลังแสดงรายการ _START_ ถึง _END_ จากทั้งหมด _TOTAL_ รายการ",
-                    "infoEmpty": "ไม่พบข้อมูล",
-                    "infoFiltered": "(filtered from _MAX_ total records)"
-                },
-                "dom": '<"row"<"col-sm-12 col-md-12"l><"col-sm-12 col-md-12"f>>t<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7 d-flex justify-content-end"p>>'
-            });
-        });
-
-        function confirmDelete(id) {
+        function confirmDelete(formId, name) {
             Swal.fire({
-                title: 'คุณแน่ใจหรือไม่?',
-                text: "คุณจะไม่สามารถย้อนกลับได้หลังจากลบ!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'ยืนยัน',
-                cancelButtonText: 'ยกเลิก'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('delete-acg-form-' + id).submit();
-                }
-            });
+                title: 'ลบบันทึกการเยี่ยม' + (name ? 'ของ ' + name : '') + '?', text: 'ลบแล้วกู้คืนไม่ได้', icon: 'warning',
+                showCancelButton: true, confirmButtonText: 'ลบ', cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#b42318', reverseButtons: true, focusCancel: true
+            }).then(r => { if (r.isConfirmed) document.getElementById(formId).submit(); });
         }
-
-        // Script removed to use server-side PDF instead for better formatting consistency (18px font)
     </script>
 @endpush
