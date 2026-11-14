@@ -19,8 +19,8 @@
             ['ACG · เยี่ยมบ้าน', route('acg.index'), Request::is('acg*'), 'house'],
             [null, 'รายงานและคำแนะนำ'],
             ['รายงานการปฏิบัติงาน', route('performanceReport.index'), Request::is('performance-report*'), 'description'],
-            ['คำแนะนำจากแพทย์', route('care_instructions.index'), Request::is('care-instructions*') && !request('unconfirmed'), 'medical_information'],
-            ['รอยืนยันคำแนะนำ', route('care_instructions.index', ['unconfirmed' => 'true']), (bool) request('unconfirmed'), 'pending_actions'],
+            ['คำแนะนำจากแพทย์', route('care_instructions.index'), Request::is('care-instructions*') && request('unconfirmed') !== 'true', 'medical_information'],
+            ['รอยืนยันคำแนะนำ', route('care_instructions.index', ['unconfirmed' => 'true']), request('unconfirmed') === 'true', 'pending_actions'],
         ]);
     } elseif ($role === 'Doctor') {
         $menu = array_merge($menu, [
