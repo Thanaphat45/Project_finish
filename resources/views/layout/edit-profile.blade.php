@@ -1,126 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Edit Profile</title>
-    <link href="{{ url('assets/css/argon-dashboard.css') }}" rel="stylesheet" />
-    <link href="{{ url('assets/css/nucleo-icons.css') }}" rel="stylesheet" />
-    <link href="{{ url('assets/css/nucleo-svg.css') }}" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@section('title', 'แก้ไขโปรไฟล์')
 
+@push('styles')
     <style>
-        body {
-            font-family: 'Open Sans', sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 0;
-            padding-top: 70px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-
-        h2 {
-            margin-top: 0;
-            color: #344767;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #344767;
-        }
-
-        input[type="text"],
-        input[type="email"],
-        input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            box-sizing: border-box;
-            background-color: #fff;
-            font-size: 14px;
-        }
-
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="file"]:focus {
-            border-color: #5e72e4;
-            outline: none;
-            box-shadow: 0 0 5px rgba(94, 114, 228, 0.5);
-        }
-
-        .edit-button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #2dce89;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            margin-top: 20px;
-        }
-
-        .edit-button:hover {
-            background-color: #24a866;
-        }
-
-        .custom-file-upload {
-            display: inline-block;
-            padding: 6px 12px;
-            cursor: pointer;
-            background-color: #1084ff;
-            color: white;
-            border-radius: 5px;
-        }
-
-        .custom-file-upload:hover {
-            background-color: #1084ff;
-        }
-
-        #image-preview {
-            margin-top: 15px;
-            max-width: 200px;
-            max-height: 200px;
-            display: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+        .profile-form .form-group { margin-bottom: 14px; }
+        .profile-form label { display: block; margin-bottom: 6px; }
+        .profile-preview { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; margin-top: 10px; display: block; }
+        .profile-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
     </style>
-</head>
+@endpush
 
-<body class="bg-gray-100 g-sidenav-show">
-    @include('layout.nav')
-
-    <div class="container mt-5">
-        <h4>แก้ไขโปรไฟล์</h4>
+@section('content')
+    <div class="form-narrow">
+        <a href="{{ url('profile-user') }}" class="back-link"><span class="material-icons">arrow_back</span>โปรไฟล์ของฉัน</a>
+        <div class="page-head"><div><h1>แก้ไขโปรไฟล์</h1></div></div>
+        <section class="panel panel-pad profile-form">
         <form action="{{ route('update-profile') }}" method="POST" enctype="multipart/form-data"
             onsubmit="concatenateAddress()">
             @csrf
             <div class="form-group">
                 <label for="Name_User">ชื่อ-สกุล</label>
-                <input type="text" id="Name_User" name="Name_User" value="{{ $user->Name_User }}" required>
+                <input type="text" id="Name_User" name="Name_User" class="form-control" value="{{ $user->Name_User }}" required>
             </div>
             <div class="form-group">
                 <label for="Email">อีเมล</label>
-                <input type="email" id="Email" name="Email" value="{{ $user->Email }}" required>
+                <input type="email" id="Email" name="Email" class="form-control" value="{{ $user->Email }}" required>
             </div>
 
             <div class="form-group">
@@ -157,26 +62,27 @@
 
             <div class="form-group">
                 <label for="Phone">เบอร์โทร</label>
-                <input type="text" id="Phone" name="Phone" value="{{ $user->Phone }}">
+                <input type="text" id="Phone" name="Phone" class="form-control" value="{{ $user->Phone }}">
             </div>
 
             <div class="form-group">
                 <label for="Image_User">รูปโปรไฟล์</label>
-                <label for="Image_User" class="custom-file-upload">
-                    เลือกรูปภาพ
-                </label>
+                <label for="Image_User" class="btn btn-light">เลือกรูปภาพ</label>
                 <input type="file" id="Image_User" name="Image_User" class="form-control" accept="image/*"
                     style="display: none;" onchange="previewImage(event)">
-                <img id="image-preview" src="{{ $user->image_url }}" alt="Image Preview" style="display: block;" />
+                <img id="image-preview" src="{{ $user->image_url }}" alt="Image Preview" class="profile-preview" />
             </div>
 
 
 
-            <button type="submit" class="edit-button">อัพเดท</button>
+            <div class="profile-actions"><a href="{{ url('profile-user') }}" class="btn btn-light">ยกเลิก</a><button type="submit" class="btn btn-primary"><span class="material-icons">save</span>บันทึกโปรไฟล์</button></div>
 
         </form>
+        </section>
     </div>
+@endsection
 
+@push('scripts')
     <script>
         let provincesData;
 
@@ -191,7 +97,7 @@
             });
 
             // Set initial values based on the existing data
-            extractAddressParts("{{ $user->Address }}");
+            extractAddressParts(@js($user->Address ?? ''));
         });
 
         function extractAddressParts(address) {
@@ -311,7 +217,4 @@
         }
 
     </script>
-
-</body>
-
-</html>
+@endpush
