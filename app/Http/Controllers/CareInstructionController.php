@@ -29,16 +29,10 @@ class CareInstructionController extends Controller
 
         // Role-Based Filtering
         if ($user->Type_Personnel == 'Doctor') {
-            $typeDoctor = $user->Type_Doctor;
             // Doctors see only Care Instructions linked to the ADL Group they manage
-            $query->whereHas('elderly.barthel_adl', function ($q) use ($typeDoctor) {
-                if ($typeDoctor == 'ติดสังคม')
-                    $q->where('Group_ADL', 'ติดสังคม');
-                elseif ($typeDoctor == 'ติดบ้าน')
-                    $q->where('Group_ADL', 'ติดบ้าน');
-                elseif ($typeDoctor == 'ติดเตียง')
-                    $q->where('Group_ADL', 'ติดเตียง');
-            });
+            if ($group = $user->doctorAdlGroup()) {
+                $query->whereHas('elderly.barthel_adl', fn ($q) => $q->where('Group_ADL', $group));
+            }
         } elseif ($user->Type_Personnel == 'Staff') {
             // Staff can see all instructions, so no additional filter is applied.
         }

@@ -198,10 +198,9 @@ class ReportController extends Controller
         $query = CareInstruction::with(['elderly'])->orderBy('Date_CI', 'desc');
 
         if ($user->Type_Personnel == 'Doctor') {
-            $typeDoctor = $user->Type_Doctor;
-            $query->whereHas('elderly.barthel_adl', function ($q) use ($typeDoctor) {
-                if ($typeDoctor) $q->where('Group_ADL', $typeDoctor);
-            });
+            if ($group = $user->doctorAdlGroup()) {
+                $query->whereHas('elderly.barthel_adl', fn ($q) => $q->where('Group_ADL', $group));
+            }
         } elseif ($user->Type_Personnel == 'Staff') {
             $query->where('Name_Staff', $user->Name_User);
         }
