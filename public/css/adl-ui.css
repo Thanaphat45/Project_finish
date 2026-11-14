@@ -305,3 +305,14 @@ body.app .alert-info { background: var(--info-soft) !important; color: var(--inf
 body.app .alert-warning { background: var(--warn-soft) !important; color: var(--warn) !important; border-color: #f3e0b5; }
 body.app .alert-danger { background: var(--danger-soft) !important; color: var(--danger) !important; border-color: #f4cbc6; }
 body.app .alert ul { margin-top: 6px; }
+
+/* ---------- legacy colour utilities pulled into the one palette ---------- */
+body.app .text-primary, body.app .text-info { color: var(--brand) !important; }
+body.app .text-success { color: var(--brand) !important; }
+body.app .text-warning { color: var(--warn) !important; }
+body.app .text-danger { color: var(--danger) !important; }
+body.app .bg-gradient-primary, body.app .bg-gradient-success, body.app .bg-gradient-info { background: var(--brand-soft) !important; color: var(--brand-ink) !important; }
+body.app .bg-gradient-warning { background: var(--warn-soft) !important; color: var(--warn) !important; }
+body.app .bg-gradient-danger { background: var(--danger-soft) !important; color: var(--danger) !important; }
+body.app .bg-gradient-secondary, body.app .bg-gradient-dark { background: #eef1ef !important; color: var(--ink-2) !important; }
+body.app .card-header h4, body.app .card-header h5 { font-size: 22px; }

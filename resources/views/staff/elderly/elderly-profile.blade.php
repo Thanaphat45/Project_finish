@@ -3,27 +3,31 @@
 @section('title', 'ประวัติ ' . $elderly->Name_Elderly)
 
 @section('content')
-    <div class="row mb-4">
-        <div class="col-12">
-            <x-card>
-                <div class="d-flex flex-column flex-md-row align-items-center gap-4 p-3">
-                    <img src="{{ $elderly->image_url }}" alt="{{ $elderly->Name_Elderly }}"
-                        class="avatar avatar-xl rounded-circle" style="width: 100px; height: 100px;">
-                    <div class="flex-grow-1 text-center text-md-start">
-                        <h4 class="mb-1">{{ $elderly->Name_Elderly }}</h4>
-                        <p class="text-secondary mb-0">
-                            {{ $elderly->Gender }} · อายุ {{ \Carbon\Carbon::parse($elderly->Birthday)->age }} ปี ·
-                            โทร {{ $elderly->Phone_Elderly }}
-                        </p>
-                        <p class="text-secondary mb-0">{{ $elderly->Address }}</p>
-                    </div>
-                    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm mb-0">
-                        <i class="fas fa-arrow-left me-1"></i> กลับหน้าจัดการผู้สูงอายุ
-                    </a>
-                </div>
-            </x-card>
+    <a href="{{ route('dashboard') }}" class="back-link"><span class="material-icons">arrow_back</span>ผู้สูงอายุในความดูแล</a>
+    <section class="panel panel-pad profile-head">
+        <img src="{{ $elderly->image_url }}" alt="">
+        <div class="profile-id">
+            <h1>{{ $elderly->Name_Elderly }}</h1>
+            <p>{{ $elderly->Gender }} · อายุ {{ \Carbon\Carbon::parse($elderly->Birthday)->age }} ปี{{ $elderly->Phone_Elderly ? ' · โทร ' . $elderly->Phone_Elderly : '' }}</p>
+            @if ($elderly->Address)<p>{{ $elderly->Address }}</p>@endif
         </div>
-    </div>
+        <div class="profile-actions">
+            <a href="{{ route('adl.create', ['elderly_id' => $elderly->ID_Elderly]) }}" class="btn btn-primary"><span class="material-icons">accessibility_new</span>ประเมิน ADL</a>
+            <a href="{{ route('cg.create', ['elderly_id' => $elderly->ID_Elderly]) }}" class="btn btn-light"><span class="material-icons">volunteer_activism</span>บันทึก CG</a>
+            <a href="{{ route('edit-elderly', ['id' => $elderly->ID_Elderly]) }}" class="btn btn-light"><span class="material-icons">edit</span>แก้ไขข้อมูล</a>
+        </div>
+    </section>
+
+    @push('styles')
+        <style>
+            .profile-head { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-bottom: 20px; }
+            .profile-head img { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; background: var(--bg); }
+            .profile-id { flex: 1 1 260px; }
+            .profile-id h1 { font-size: 28px; margin: 0 0 4px; }
+            .profile-id p { margin: 0; color: var(--muted); }
+            .profile-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+        </style>
+    @endpush
 
     <div class="row mb-4">
         <div class="col-md-4 mb-3 mb-md-0">
@@ -199,8 +203,9 @@
                         datasets: [{
                             label: 'คะแนน ADL',
                             data: adlHistory.map(a => a.Score_ADL),
-                            borderColor: 'rgba(94, 114, 228, 1)',
-                            backgroundColor: 'rgba(94, 114, 228, 0.1)',
+                            borderColor: '#1d6b46',
+                            backgroundColor: 'rgba(29, 107, 70, 0.08)',
+                            pointBackgroundColor: '#1d6b46',
                             tension: 0.3,
                             fill: true,
                         }]
@@ -209,6 +214,8 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
+                        // Full 0–20 scale so a 1–2 point change is not drawn as a collapse.
+                        scales: { y: { min: 0, max: 20, ticks: { stepSize: 5 } } },
                     }
                 });
             }
