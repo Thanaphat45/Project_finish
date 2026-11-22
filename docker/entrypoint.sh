@@ -12,8 +12,18 @@ if [ ! -f /var/www/html/.env ] && [ -f /var/www/html/.env.example ]; then
     cp /var/www/html/.env.example /var/www/html/.env
 fi
 
+# APP_KEY encrypts session cookies and CSRF tokens. A key generated here
+# changes on every container start (Render's free tier restarts after idling),
+# which logs everyone out and makes every open form fail with 419. So outside
+# local dev, refuse to start without a fixed key set in the platform's env.
 if [ -z "$APP_KEY" ]; then
-    php artisan key:generate --force
+    if [ "${APP_ENV:-production}" = "local" ]; then
+        php artisan key:generate --force
+    else
+        echo "ERROR: APP_KEY is not set. Run 'php artisan key:generate --show' locally" >&2
+        echo "and add the value as the APP_KEY environment variable on the host." >&2
+        exit 1
+    fi
 fi
 
 php artisan storage:link || true
