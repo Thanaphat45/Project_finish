@@ -57,8 +57,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         bcmath \
         gd \
         zip \
+        opcache \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
+
+# OPcache: without it PHP recompiles every Laravel file on every request,
+# which cost ~1s per page on Render's small instance. Code never changes
+# inside a running container, so skip file timestamp checks entirely.
+RUN { \
+        echo 'opcache.enable=1'; \
+        echo 'opcache.memory_consumption=128'; \
+        echo 'opcache.interned_strings_buffer=16'; \
+        echo 'opcache.max_accelerated_files=20000'; \
+        echo 'opcache.validate_timestamps=0'; \
+    } > /usr/local/etc/php/conf.d/opcache.ini
 
 # Point Apache's document root at Laravel's public/ directory
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public

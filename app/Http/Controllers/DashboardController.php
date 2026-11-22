@@ -67,25 +67,24 @@ class DashboardController extends Controller
             $query->whereDate('created_at', '<=', $createdTo);
         }
 
+        // Bucket counts first, on a clone, so paginate()'s limit/offset can't leak in.
+        // One query instead of seven: each round trip to the database costs ~100ms+.
+        [$adl, $age] = $this->bucketCounts(clone $query);
+        $adlGroups = [
+            'กลุ่มติดสังคม' => $adl['กลุ่มติดสังคม'],
+            'กลุ่มติดบ้าน' => $adl['กลุ่มติดบ้าน'],
+            'กลุ่มติดเตียง' => $adl['กลุ่มติดเตียง'],
+        ];
+        $ageGroups = [
+            'ช่วงอายุ 60-69' => $age['60-69'],
+            'ช่วงอายุ 70-79' => $age['70-79'],
+            'ช่วงอายุ 80-89' => $age['80-89'],
+            'ช่วงอายุ 90+' => $age['90+'],
+        ];
+
         $elderlies = $query->paginate(20);
         /** @var \Illuminate\Pagination\LengthAwarePaginator $elderlies */
         $elderlies->withQueryString();
-
-        // Stats & Charts (clone the already-filtered $query per bucket, same
-        // pattern as doctorDashboard()'s chartData, so these respect whatever
-        // search/adl_group/gender/age_range/created_date filter is active)
-        $adlGroups = [
-            'กลุ่มติดสังคม' => (clone $query)->whereHas('barthel_adl', fn($q) => $q->where('Group_ADL', 'กลุ่มติดสังคม'))->count(),
-            'กลุ่มติดบ้าน' => (clone $query)->whereHas('barthel_adl', fn($q) => $q->where('Group_ADL', 'กลุ่มติดบ้าน'))->count(),
-            'กลุ่มติดเตียง' => (clone $query)->whereHas('barthel_adl', fn($q) => $q->where('Group_ADL', 'กลุ่มติดเตียง'))->count(),
-        ];
-
-        $ageGroups = [
-            'ช่วงอายุ 60-69' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 60 AND 69')->count(),
-            'ช่วงอายุ 70-79' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 70 AND 79')->count(),
-            'ช่วงอายุ 80-89' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 80 AND 89')->count(),
-            'ช่วงอายุ 90+' => (clone $query)->whereRaw(Sql::age() . ' >= 90')->count(),
-        ];
 
         $elderlyLocations = $this->getElderlyLocations($elderlies);
 
@@ -110,6 +109,8 @@ class DashboardController extends Controller
             $this->applyAgeFilter($query, $request->age_range);
         }
 
+        [$adl, $age] = $this->bucketCounts(clone $query);
+
         $elderlys = $query->paginate(20);
         /** @var \Illuminate\Pagination\LengthAwarePaginator $elderlys */
         $elderlys->withQueryString();
@@ -122,19 +123,50 @@ class DashboardController extends Controller
 
         $chartData = [
             'adl_distribution' => [
-                'ติดสังคม' => (clone $query)->whereHas('barthel_adl', fn($q) => $q->where('Group_ADL', 'กลุ่มติดสังคม'))->count(),
-                'ติดบ้าน' => (clone $query)->whereHas('barthel_adl', fn($q) => $q->where('Group_ADL', 'กลุ่มติดบ้าน'))->count(),
-                'ติดเตียง' => (clone $query)->whereHas('barthel_adl', fn($q) => $q->where('Group_ADL', 'กลุ่มติดเตียง'))->count(),
+                'ติดสังคม' => $adl['กลุ่มติดสังคม'],
+                'ติดบ้าน' => $adl['กลุ่มติดบ้าน'],
+                'ติดเตียง' => $adl['กลุ่มติดเตียง'],
             ],
-            'age_distribution' => [
-                '60-69' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 60 AND 69')->count(),
-                '70-79' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 70 AND 79')->count(),
-                '80-89' => (clone $query)->whereRaw(Sql::age() . ' BETWEEN 80 AND 89')->count(),
-                '90+' => (clone $query)->whereRaw(Sql::age() . ' >= 90')->count(),
-            ]
+            'age_distribution' => $age,
         ];
 
         return view('dashboard', compact('elderlys', 'stats', 'chartData'));
+    }
+
+    /**
+     * ADL-group and age-range counts for an already-filtered elderly query, in
+     * a single round trip. The ADL group is each elderly's latest assessment
+     * (highest ID_ADL), matching the barthel_adl() latestOfMany relation.
+     *
+     * @return array{0: array<string,int>, 1: array<string,int>}
+     */
+    private function bucketCounts($query): array
+    {
+        $latestGroup = BarthelAdl::select('Group_ADL')
+            ->whereColumn('barthel_adls.ID_Elderly', 'elderlys.ID_Elderly')
+            ->orderByDesc('ID_ADL')
+            ->limit(1);
+
+        $rows = $query->toBase()
+            ->select('elderlys.ID_Elderly')
+            ->selectSub($latestGroup->toBase(), 'grp')
+            ->selectRaw(Sql::age() . ' as age');
+
+        $sum = fn(string $cond) => "COALESCE(SUM(CASE WHEN {$cond} THEN 1 ELSE 0 END), 0)";
+        $r = \Illuminate\Support\Facades\DB::query()->fromSub($rows, 't')
+            ->selectRaw($sum('grp = ?') . ' as social', ['กลุ่มติดสังคม'])
+            ->selectRaw($sum('grp = ?') . ' as home', ['กลุ่มติดบ้าน'])
+            ->selectRaw($sum('grp = ?') . ' as bed', ['กลุ่มติดเตียง'])
+            ->selectRaw($sum('age BETWEEN 60 AND 69') . ' as a60')
+            ->selectRaw($sum('age BETWEEN 70 AND 79') . ' as a70')
+            ->selectRaw($sum('age BETWEEN 80 AND 89') . ' as a80')
+            ->selectRaw($sum('age >= 90') . ' as a90')
+            ->first();
+
+        return [
+            ['กลุ่มติดสังคม' => (int) $r->social, 'กลุ่มติดบ้าน' => (int) $r->home, 'กลุ่มติดเตียง' => (int) $r->bed],
+            ['60-69' => (int) $r->a60, '70-79' => (int) $r->a70, '80-89' => (int) $r->a80, '90+' => (int) $r->a90],
+        ];
     }
 
     private function applyAgeFilter($query, $range)
