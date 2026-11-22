@@ -83,7 +83,7 @@
                         <a href="{{ route('admin.revert-role') }}"><span class="material-icons">undo</span>กลับสู่ผู้ดูแลระบบ</a>
                     @else
                         <a href="{{ route('admin.switch-role', 'Staff') }}"><span class="material-icons">badge</span>ดูในมุมเจ้าหน้าที่</a>
-                        <a href="{{ route('admin.switch-role', 'Doctor') }}"><span class="material-icons">stethoscope</span>ดูในมุมแพทย์</a>
+                        <a href="{{ route('admin.switch-role', 'Doctor') }}"><span class="material-icons">medical_services</span>ดูในมุมแพทย์</a>
                     @endif
                 @endif
                 <form action="{{ route('logout') }}" method="POST">
